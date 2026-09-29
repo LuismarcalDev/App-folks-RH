@@ -1,0 +1,10 @@
+export 'cadastro_screen.dart';
+export 'dashboard_screen.dart';
+export 'desempenho_screen.dart';
+export 'login_screen.dart';
+export 'main_navigation_screen.dart';
+export 'notificacoes_screen.dart';
+export 'perfil_screen.dart';
+export 'starter_screen.dart';
+export 'tarefas_screen.dart';
+export 'welcome_screen.dart';
