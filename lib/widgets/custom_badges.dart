@@ -52,36 +52,6 @@ class ProfileAvatar extends StatelessWidget {
   }
 }
 
-/// Versão profissional e simples para avatar de usuário
-class AlienAvatar extends StatelessWidget {
-  final double size;
-
-  const AlienAvatar({super.key, this.size = 32});
-
-  @override
-  Widget build(BuildContext context) {
-    return ProfileAvatar(
-      size: size,
-      icon: Icons.person_outline,
-    );
-  }
-}
-
-/// Versão profissional e simples para crachá de identificação
-class SkullBadge extends StatelessWidget {
-  final double size;
-
-  const SkullBadge({super.key, this.size = 32});
-
-  @override
-  Widget build(BuildContext context) {
-    return ProfileAvatar(
-      size: size,
-      icon: Icons.badge_outlined,
-    );
-  }
-}
-
 /// Double Chevron Up Icon (Red / Priority Indicator)
 class DoubleChevronUp extends StatelessWidget {
   final Color color;

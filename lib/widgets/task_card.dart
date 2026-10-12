@@ -25,27 +25,7 @@ class TaskCard extends StatefulWidget {
 class _TaskCardState extends State<TaskCard> {
   bool _isExpanded = false;
 
-  Color _getPriorityColor(TaskPriority priority) {
-    switch (priority) {
-      case TaskPriority.alta:
-        return const Color(0xFFE57373);
-      case TaskPriority.media:
-        return const Color(0xFFFFB74D);
-      case TaskPriority.baixa:
-        return const Color(0xFF81C784);
-    }
-  }
 
-  Color _getStatusColor(TaskStatus status) {
-    switch (status) {
-      case TaskStatus.emAndamento:
-        return const Color(0xFF1E2856);
-      case TaskStatus.pendente:
-        return const Color(0xFFB45309);
-      case TaskStatus.concluido:
-        return const Color(0xFF15803D);
-    }
-  }
 
   void _showStatusPicker() {
     showModalBottomSheet(
@@ -84,7 +64,7 @@ class _TaskCardState extends State<TaskCard> {
               const SizedBox(height: 16),
               ...TaskStatus.values.map((status) {
                 final isCurrent = widget.task.status == status;
-                final color = _getStatusColor(status);
+                final color = status.color;
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
@@ -133,8 +113,8 @@ class _TaskCardState extends State<TaskCard> {
   @override
   Widget build(BuildContext context) {
     final task = widget.task;
-    final priorityColor = _getPriorityColor(task.priority);
-    final statusColor = _getStatusColor(task.status);
+    final priorityColor = task.priority.color;
+    final statusColor = task.status.color;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),

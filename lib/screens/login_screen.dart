@@ -54,15 +54,17 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // Validação com as credenciais configuradas: adm, alessandra e igor (senha: 1234)
     final u = user.toLowerCase();
-    final isValidUser = (u == 'adm' ||
-        u == 'alessandra' ||
-        u == 'alessandra@folksrh.com' ||
-        u == 'alessandra@folksrh.com.br' ||
-        u == 'igor' ||
-        u == 'igor@folksrh.com' ||
-        u == 'igor@folksrh.com.br');
+    const validUsers = {
+      'adm',
+      'alessandra',
+      'alessandra@folksrh.com',
+      'alessandra@folksrh.com.br',
+      'igor',
+      'igor@folksrh.com',
+      'igor@folksrh.com.br',
+    };
+    final isValidUser = validUsers.contains(u);
 
     if (isValidUser && pass == '1234') {
       UserSession.login(u);

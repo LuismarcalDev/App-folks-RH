@@ -6,11 +6,6 @@ enum AvatarChoice {
 
   const AvatarChoice(this.label);
   final String label;
-
-  // Aliases para compatibilidade
-  static const AvatarChoice both = AvatarChoice.person;
-  static const AvatarChoice alien = AvatarChoice.initials;
-  static const AvatarChoice skull = AvatarChoice.badge;
 }
 
 class UserProfile {
@@ -31,6 +26,16 @@ class UserProfile {
     this.bio = '',
     this.avatarChoice = AvatarChoice.person,
   });
+
+  String get initials {
+    final clean = name.split('(').first.trim().replaceAll('-', ' ');
+    final parts = clean.split(' ').where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return 'RH';
+    if (parts.length == 1) {
+      return parts[0].substring(0, parts[0].length >= 2 ? 2 : parts[0].length).toUpperCase();
+    }
+    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+  }
 
   UserProfile copyWith({
     String? name,

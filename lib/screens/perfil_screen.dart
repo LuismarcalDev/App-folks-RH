@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../routes/app_routes.dart';
@@ -52,16 +51,14 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
-  void _showPasswordModal() {
-    final formKey = GlobalKey<FormState>();
-    final currentPasswordController = TextEditingController();
-    final newPasswordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
-    bool obscure = true;
-
+  void _showFolksModal({
+    required String title,
+    required Widget Function(BuildContext ctx, StateSetter? setModalState) contentBuilder,
+    bool isScrollControlled = false,
+  }) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
+      isScrollControlled: isScrollControlled,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) {
@@ -79,177 +76,10 @@ class _PerfilScreenState extends State<PerfilScreen> {
               top: 20,
               left: 20,
               right: 20,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              bottom: isScrollControlled
+                  ? MediaQuery.of(context).viewInsets.bottom + 24
+                  : 20,
             ),
-            child: Form(
-              key: formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 44,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.white30,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'ALTERAR SENHA DE ACESSO',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white70, size: 20),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                      ],
-                    ),
-                    const Divider(color: Colors.white24, height: 16),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: currentPasswordController,
-                      obscureText: obscure,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
-                        labelText: 'Senha Atual *',
-                        labelStyle: const TextStyle(color: Colors.white70, fontSize: 13),
-                        prefixIcon: const Icon(Icons.lock_outline, color: Colors.white70, size: 20),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                            color: Colors.white70,
-                            size: 20,
-                          ),
-                          onPressed: () => setModalState(() => obscure = !obscure),
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFF2E2E2E),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.white24),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Informe sua senha atual';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: newPasswordController,
-                      obscureText: obscure,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
-                        labelText: 'Nova Senha *',
-                        labelStyle: const TextStyle(color: Colors.white70, fontSize: 13),
-                        prefixIcon: const Icon(Icons.lock_reset, color: Colors.white70, size: 20),
-                        filled: true,
-                        fillColor: const Color(0xFF2E2E2E),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.white24),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Informe a nova senha';
-                        }
-                        if (value.length < 4) {
-                          return 'Mínimo de 4 caracteres';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: confirmPasswordController,
-                      obscureText: obscure,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: InputDecoration(
-                        labelText: 'Confirmar Nova Senha *',
-                        labelStyle: const TextStyle(color: Colors.white70, fontSize: 13),
-                        prefixIcon: const Icon(Icons.lock_reset, color: Colors.white70, size: 20),
-                        filled: true,
-                        fillColor: const Color(0xFF2E2E2E),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.white24),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value != newPasswordController.text) {
-                          return 'As senhas não coincidem';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (!formKey.currentState!.validate()) return;
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Senha alterada com sucesso!'),
-                            backgroundColor: Color(0xFF1E2856),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E2856),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(color: Colors.white, width: 1.2),
-                        ),
-                      ),
-                      child: const Text(
-                        'ATUALIZAR SENHA',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showNotificationPreferencesModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFF383838),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              border: Border(
-                top: BorderSide(color: Colors.white, width: 1.4),
-                left: BorderSide(color: Colors.white, width: 1.4),
-                right: BorderSide(color: Colors.white, width: 1.4),
-              ),
-            ),
-            padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -268,9 +98,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'PREFERÊNCIAS DE NOTIFICAÇÃO',
-                      style: TextStyle(
+                    Text(
+                      title,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -283,49 +113,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                   ],
                 ),
                 const Divider(color: Colors.white24, height: 16),
-                SwitchListTile(
-                  title: const Text('Notificações Push', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
-                  subtitle: const Text('Receber alertas de novas tarefas no app', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                  value: _pushNotifications,
-                  activeThumbColor: const Color(0xFF1E2856),
-                  onChanged: (val) {
-                    setModalState(() => _pushNotifications = val);
-                    setState(() => _pushNotifications = val);
-                  },
-                ),
-                SwitchListTile(
-                  title: const Text('Alertas por E-mail', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
-                  subtitle: const Text('Resumo diário e atualizações de recrutamento', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                  value: _emailAlerts,
-                  activeThumbColor: const Color(0xFF1E2856),
-                  onChanged: (val) {
-                    setModalState(() => _emailAlerts = val);
-                    setState(() => _emailAlerts = val);
-                  },
-                ),
-                SwitchListTile(
-                  title: const Text('Lembretes de Prazos', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
-                  subtitle: const Text('Avisar quando uma tarefa estiver próxima do vencimento', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                  value: _deadlineReminders,
-                  activeThumbColor: const Color(0xFF1E2856),
-                  onChanged: (val) {
-                    setModalState(() => _deadlineReminders = val);
-                    setState(() => _deadlineReminders = val);
-                  },
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E2856),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: const BorderSide(color: Colors.white, width: 1.2),
-                    ),
-                  ),
-                  child: const Text('CONCLUÍDO', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
+                contentBuilder(context, setModalState),
               ],
             ),
           );
@@ -334,44 +122,163 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
-  void _showHelpModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF383838),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border(
-            top: BorderSide(color: Colors.white, width: 1.4),
-            left: BorderSide(color: Colors.white, width: 1.4),
-            right: BorderSide(color: Colors.white, width: 1.4),
+  void _showPasswordModal() {
+    final formKey = GlobalKey<FormState>();
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool obscure = true;
+
+    _showFolksModal(
+      title: 'ALTERAR SENHA DE ACESSO',
+      isScrollControlled: true,
+      contentBuilder: (ctx, setModalState) {
+        InputDecoration inputDeco(String label, IconData icon, {Widget? suffix}) {
+          return InputDecoration(
+            labelText: label,
+            labelStyle: const TextStyle(color: Colors.white70, fontSize: 13),
+            prefixIcon: Icon(icon, color: Colors.white70, size: 20),
+            suffixIcon: suffix,
+            filled: true,
+            fillColor: const Color(0xFF2E2E2E),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Colors.white24),
+            ),
+          );
+        }
+
+        return Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: currentPasswordController,
+                  obscureText: obscure,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: inputDeco(
+                    'Senha Atual *',
+                    Icons.lock_outline,
+                    suffix: IconButton(
+                      icon: Icon(
+                        obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
+                      onPressed: () => setModalState!(() => obscure = !obscure),
+                    ),
+                  ),
+                  validator: (v) => (v == null || v.isEmpty) ? 'Informe sua senha atual' : null,
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: newPasswordController,
+                  obscureText: obscure,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: inputDeco('Nova Senha *', Icons.lock_reset),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Informe a nova senha';
+                    if (v.length < 4) return 'Mínimo de 4 caracteres';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: confirmPasswordController,
+                  obscureText: obscure,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: inputDeco('Confirmar Nova Senha *', Icons.lock_reset),
+                  validator: (v) => (v != newPasswordController.text) ? 'As senhas não coincidem' : null,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    if (!formKey.currentState!.validate()) return;
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Senha alterada com sucesso!'),
+                        backgroundColor: Color(0xFF1E2856),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E2856),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: const BorderSide(color: Colors.white, width: 1.2),
+                    ),
+                  ),
+                  child: const Text(
+                    'ATUALIZAR SENHA',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
+        );
+      },
+    );
+  }
+
+  void _showNotificationPreferencesModal() {
+    _showFolksModal(
+      title: 'PREFERÊNCIAS DE NOTIFICAÇÃO',
+      contentBuilder: (ctx, setModalState) {
+        Widget buildSwitch(String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
+          return SwitchListTile(
+            title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+            subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+            value: value,
+            activeThumbColor: const Color(0xFF1E2856),
+            onChanged: (val) {
+              setModalState!(() => onChanged(val));
+              setState(() => onChanged(val));
+            },
+          );
+        }
+
+        return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Container(
-                width: 44,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white30,
-                  borderRadius: BorderRadius.circular(2),
+            buildSwitch('Notificações Push', 'Receber alertas de novas tarefas no app', _pushNotifications, (v) => _pushNotifications = v),
+            buildSwitch('Alertas por E-mail', 'Resumo diário e atualizações de recrutamento', _emailAlerts, (v) => _emailAlerts = v),
+            buildSwitch('Lembretes de Prazos', 'Avisar quando uma tarefa estiver próxima do vencimento', _deadlineReminders, (v) => _deadlineReminders = v),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1E2856),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: const BorderSide(color: Colors.white, width: 1.2),
                 ),
               ),
+              child: const Text('CONCLUÍDO', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'CENTRAL DE AJUDA & SUPORTE',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showHelpModal() {
+    _showFolksModal(
+      title: 'CENTRAL DE AJUDA & SUPORTE',
+      contentBuilder: (ctx, _) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             const SizedBox(height: 12),
             const Text(
               'Folks RH - Sistema de Gestão de Recrutamento',
@@ -424,8 +331,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
               child: const Text('FECHAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -469,16 +376,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
-  String _getInitials(String name) {
-    final clean = name.split('(').first.trim().replaceAll('-', ' ');
-    final parts = clean.split(' ').where((p) => p.isNotEmpty).toList();
-    if (parts.isEmpty) return 'RH';
-    if (parts.length == 1) {
-      return parts[0].substring(0, math.min(2, parts[0].length)).toUpperCase();
-    }
-    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-  }
-
   Widget _buildAvatar() {
     switch (_profile.avatarChoice) {
       case AvatarChoice.person:
@@ -486,7 +383,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
       case AvatarChoice.initials:
         return ProfileAvatar(
           size: 64,
-          initials: _getInitials(_profile.name),
+          initials: _profile.initials,
         );
       case AvatarChoice.badge:
         return const ProfileAvatar(size: 64, icon: Icons.badge_outlined);

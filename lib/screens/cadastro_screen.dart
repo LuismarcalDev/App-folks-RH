@@ -12,6 +12,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _authCodeController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
@@ -22,6 +23,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _authCodeController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -41,6 +43,13 @@ class _CadastroScreenState extends State<CadastroScreen> {
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (!emailRegex.hasMatch(value.trim())) {
       return 'E-mail inválido';
+    }
+    return null;
+  }
+
+  String? _validateAuthCode(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Informe o código de autenticação';
     }
     return null;
   }
@@ -150,6 +159,17 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       decoration: const InputDecoration(
                         labelText: 'E-mail',
                         prefixIcon: Icon(Icons.email_outlined),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextFormField(
+                      controller: _authCodeController,
+                      validator: _validateAuthCode,
+                      decoration: const InputDecoration(
+                        labelText: 'Código de autenticação',
+                        prefixIcon: Icon(Icons.key_outlined),
                         border: OutlineInputBorder(),
                       ),
                     ),

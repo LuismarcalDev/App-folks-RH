@@ -1,22 +1,42 @@
-enum TaskPriority {
-  alta('Alta'),
-  media('Média'),
-  baixa('Baixa');
+import 'package:flutter/material.dart';
 
-  const TaskPriority(this.label);
+enum TaskPriority {
+  alta('Alta', Color(0xFFE57373)),
+  media('Média', Color(0xFFFFB74D)),
+  baixa('Baixa', Color(0xFF81C784));
+
+  const TaskPriority(this.label, this.color);
   final String label;
+  final Color color;
 }
 
 enum TaskStatus {
-  emAndamento('EM ANDAMENTO'),
-  pendente('PENDENTE'),
-  concluido('CONCLUÍDO');
+  emAndamento('EM ANDAMENTO', Color(0xFF1E2856)),
+  pendente('PENDENTE', Color(0xFFB45309)),
+  concluido('CONCLUÍDO', Color(0xFF15803D));
 
-  const TaskStatus(this.label);
+  const TaskStatus(this.label, this.color);
   final String label;
+  final Color color;
 }
 
 class Task {
+  static String formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
+  }
+
+  static DateTime parseDate(String dateStr) {
+    try {
+      final parts = dateStr.split('/');
+      if (parts.length == 3) {
+        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      }
+    } catch (_) {}
+    return DateTime.now();
+  }
+
   final String id;
   final String title;
   final String description;

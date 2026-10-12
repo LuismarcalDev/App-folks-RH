@@ -63,12 +63,7 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
     }
   }
 
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final year = date.year.toString();
-    return '$day/$month/$year';
-  }
+
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
@@ -80,7 +75,7 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
           ? 'Sem descrição cadastrada.'
           : _descController.text.trim(),
       priority: _selectedPriority,
-      dueDate: _formatDate(_selectedDate),
+      dueDate: Task.formatDate(_selectedDate),
       timeAgo: 'Agora',
       managerName: _selectedManager.name,
       managerInitials: _selectedManager.initials,
@@ -228,18 +223,7 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
               Row(
                 children: TaskPriority.values.map((priority) {
                   final isSelected = _selectedPriority == priority;
-                  Color color;
-                  switch (priority) {
-                    case TaskPriority.alta:
-                      color = const Color(0xFFE57373);
-                      break;
-                    case TaskPriority.media:
-                      color = const Color(0xFFFFB74D);
-                      break;
-                    case TaskPriority.baixa:
-                      color = const Color(0xFF81C784);
-                      break;
-                  }
+                  final color = priority.color;
 
                   return Expanded(
                     child: Padding(
@@ -314,7 +298,7 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  _formatDate(_selectedDate),
+                                  Task.formatDate(_selectedDate),
                                   style: const TextStyle(color: Colors.white, fontSize: 13),
                                 ),
                                 const Icon(Icons.calendar_month, color: Colors.white70, size: 18),

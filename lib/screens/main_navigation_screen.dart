@@ -43,11 +43,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Status atualizado para: ${newStatus.label}'),
-        backgroundColor: newStatus == TaskStatus.emAndamento
-            ? const Color(0xFF1E2856)
-            : newStatus == TaskStatus.pendente
-                ? const Color(0xFFB45309)
-                : const Color(0xFF15803D),
+        backgroundColor: newStatus.color,
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),

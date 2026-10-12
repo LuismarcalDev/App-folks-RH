@@ -64,6 +64,3 @@ class _StarterScreenState extends State<StarterScreen> {
     );
   }
 }
-
-// Alias para manter compatibilidade
-typedef Starter = StarterScreen;

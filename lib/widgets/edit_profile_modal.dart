@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import 'custom_badges.dart';
@@ -69,16 +69,6 @@ class _EditProfileModalState extends State<EditProfileModal> {
     Navigator.of(context).pop();
   }
 
-  String _getInitials(String name) {
-    final clean = name.split('(').first.trim().replaceAll('-', ' ');
-    final parts = clean.split(' ').where((p) => p.isNotEmpty).toList();
-    if (parts.isEmpty) return 'RH';
-    if (parts.length == 1) {
-      return parts[0].substring(0, math.min(2, parts[0].length)).toUpperCase();
-    }
-    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-  }
-
   Widget _buildAvatarPreview(AvatarChoice choice, {double size = 38}) {
     switch (choice) {
       case AvatarChoice.person:
@@ -86,7 +76,7 @@ class _EditProfileModalState extends State<EditProfileModal> {
       case AvatarChoice.initials:
         return ProfileAvatar(
           size: size,
-          initials: _getInitials(widget.profile.name),
+          initials: widget.profile.initials,
         );
       case AvatarChoice.badge:
         return ProfileAvatar(size: size, icon: Icons.badge_outlined);

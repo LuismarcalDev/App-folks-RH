@@ -39,7 +39,7 @@ class _EditTaskModalState extends State<EditTaskModal> {
 
     _selectedPriority = widget.task.priority;
     _selectedStatus = widget.task.status;
-    _selectedDate = _parseDate(widget.task.dueDate);
+    _selectedDate = Task.parseDate(widget.task.dueDate);
 
     _managers = List.from(availableManagers);
     final matchIndex = _managers.indexWhere(
@@ -65,25 +65,7 @@ class _EditTaskModalState extends State<EditTaskModal> {
     super.dispose();
   }
 
-  DateTime _parseDate(String dateStr) {
-    try {
-      final parts = dateStr.split('/');
-      if (parts.length == 3) {
-        final day = int.parse(parts[0]);
-        final month = int.parse(parts[1]);
-        final year = int.parse(parts[2]);
-        return DateTime(year, month, day);
-      }
-    } catch (_) {}
-    return DateTime.now();
-  }
 
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final year = date.year.toString();
-    return '$day/$month/$year';
-  }
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -129,7 +111,7 @@ class _EditTaskModalState extends State<EditTaskModal> {
           ? 'Sem descrição cadastrada.'
           : _descController.text.trim(),
       priority: _selectedPriority,
-      dueDate: _formatDate(_selectedDate),
+      dueDate: Task.formatDate(_selectedDate),
       managerName: _selectedManager.name,
       managerInitials: _selectedManager.initials,
       status: _selectedStatus,
@@ -280,18 +262,7 @@ class _EditTaskModalState extends State<EditTaskModal> {
               Row(
                 children: TaskPriority.values.map((priority) {
                   final isSelected = _selectedPriority == priority;
-                  Color color;
-                  switch (priority) {
-                    case TaskPriority.alta:
-                      color = const Color(0xFFE57373);
-                      break;
-                    case TaskPriority.media:
-                      color = const Color(0xFFFFB74D);
-                      break;
-                    case TaskPriority.baixa:
-                      color = const Color(0xFF81C784);
-                      break;
-                  }
+                  final color = priority.color;
 
                   return Expanded(
                     child: Padding(
@@ -366,7 +337,7 @@ class _EditTaskModalState extends State<EditTaskModal> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  _formatDate(_selectedDate),
+                                  Task.formatDate(_selectedDate),
                                   style: const TextStyle(color: Colors.white, fontSize: 13),
                                 ),
                                 const Icon(Icons.calendar_month, color: Colors.white70, size: 18),
