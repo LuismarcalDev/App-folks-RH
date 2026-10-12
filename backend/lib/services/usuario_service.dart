@@ -44,4 +44,39 @@ class UsuarioService {
       codigoUtilizado: usuario.codigoUtilizado,
     );
   }
+
+  Future<UsuarioModel?> autenticar(String emailOuLogin, String senha) async {
+    final conn = await Database.getConnection();
+    final senhaCriptografada = _gerarHashSenha(senha);
+
+    const sql = '''
+      SELECT Id, Nome, Tipo, Setor_Id, E_mail, Telefone, Codigo_Autenticacao_Id, Codigo_Utilizado
+      FROM Usuarios
+      WHERE (E_mail = ? OR Nome = ?) AND Senha = ?
+      LIMIT 1;
+    ''';
+
+    final resultado = await conn.query(sql, [
+      emailOuLogin,
+      emailOuLogin,
+      senhaCriptografada,
+    ]);
+
+    if (resultado.isEmpty) {
+      return null;
+    }
+
+    final row = resultado.first;
+
+    return UsuarioModel(
+      id: row[0] as int?,
+      nome: row[1]?.toString() ?? '',
+      tipo: row[2]?.toString() ?? '',
+      setorId: row[3] as int?,
+      email: row[4]?.toString() ?? '',
+      telefone: row[5]?.toString(),
+      codigoAutenticacaoId: row[6] as int?,
+      codigoUtilizado: row[7]?.toString(),
+    );
+  }
 }

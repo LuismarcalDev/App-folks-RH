@@ -18,8 +18,10 @@ void main() async {
   }
 
   final app = Router();
+  final usuarioRoutes = UsuarioRoutes();
 
-  app.mount('/usuarios', UsuarioRoutes().router.call);
+  app.mount('/usuarios', usuarioRoutes.router.call);
+  app.post('/login', usuarioRoutes.login);
 
   app.get('/health', (Request req) {
     return Response.ok(
