@@ -69,6 +69,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
+  void _onTaskDeleted(Task task) {
+    setState(() {
+      _tasks.removeWhere((t) => t.id == task.id);
+    });
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Tarefa "${task.title}" excluída com sucesso!'),
+        backgroundColor: Colors.redAccent.shade700,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screens = [
@@ -76,12 +92,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         tasks: _tasks,
         onTaskCreated: _onTaskCreated,
         onStatusUpdated: _onStatusUpdated,
+        onTaskEdited: _onTaskUpdated,
+        onTaskDeleted: _onTaskDeleted,
+        onPermissionsUpdated: () => setState(() {}),
       ),
       TarefasScreen(
         tasks: _tasks,
         onTaskCreated: _onTaskCreated,
         onStatusUpdated: _onStatusUpdated,
         onTaskEdited: _onTaskUpdated,
+        onTaskDeleted: _onTaskDeleted,
       ),
       DesempenhoScreen(tasks: _tasks),
       const NotificacoesScreen(),

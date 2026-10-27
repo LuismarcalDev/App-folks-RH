@@ -10,6 +10,7 @@ dependencies:
   shelf_router: ^1.1.4
   dotenv: ^4.2.0
   mysql1: ^0.20.0
+  mysql_client: ^0.0.27
   crypto: ^3.0.3
 
 dev_dependencies:

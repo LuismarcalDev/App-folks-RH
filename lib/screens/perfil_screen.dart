@@ -3,6 +3,7 @@ import '../models/user_profile.dart';
 import '../routes/app_routes.dart';
 import '../widgets/custom_badges.dart';
 import '../widgets/edit_profile_modal.dart';
+import '../widgets/permissions_management_modal.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
@@ -46,6 +47,21 @@ class _PerfilScreenState extends State<PerfilScreen> {
               behavior: SnackBarBehavior.floating,
             ),
           );
+        },
+      ),
+    );
+  }
+
+  void _openPermissionsModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => PermissionsManagementModal(
+        onPermissionsChanged: () {
+          setState(() {
+            _profile = UserSession.current;
+          });
         },
       ),
     );
@@ -600,6 +616,70 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
             const SizedBox(height: 16),
 
+            // --- PERMISSIONS CARD ---
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF454545),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: _profile.isAdmin ? Colors.amberAccent : Colors.white24,
+                  width: 1.0,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'NÍVEL E PERMISSÕES (BANCO MYSQL)',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _profile.isAdmin
+                              ? Colors.amber.shade800
+                              : const Color(0xFF1E2856),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          _profile.tipo.toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildPermChip('Criar Tarefas', _profile.permissions.criarTarefas),
+                      _buildPermChip('Editar Tarefas', _profile.permissions.editarTarefas),
+                      _buildPermChip('Excluir Tarefas', _profile.permissions.excluirTarefas),
+                      _buildPermChip('Alterar Status', _profile.permissions.alterarStatus),
+                      _buildPermChip('Ver Desempenho', _profile.permissions.verDesempenho),
+                      _buildPermChip('Admin / Permissões', _profile.permissions.gerenciarPermissoes),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
             // --- SETTINGS SECTION ---
             const Padding(
               padding: EdgeInsets.only(left: 4, bottom: 8),
@@ -613,6 +693,14 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 ),
               ),
             ),
+
+            if (_profile.permissions.gerenciarPermissoes)
+              _buildSettingTile(
+                icon: Icons.admin_panel_settings,
+                title: 'Gerenciar Permissões e Usuários (Admin)',
+                subtitle: 'Alterar níveis e permissões de usuários no MySQL (folks)',
+                onTap: _openPermissionsModal,
+              ),
 
             _buildSettingTile(
               icon: Icons.person_outline,
@@ -741,6 +829,39 @@ class _PerfilScreenState extends State<PerfilScreen> {
         ),
         trailing: const Icon(Icons.chevron_right, color: Colors.white54, size: 20),
         onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildPermChip(String label, bool enabled) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: enabled ? const Color(0xFF15803D).withValues(alpha: 0.35) : Colors.black26,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: enabled ? Colors.greenAccent : Colors.white24,
+          width: 0.9,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            enabled ? Icons.check_circle : Icons.cancel_outlined,
+            color: enabled ? Colors.greenAccent : Colors.white38,
+            size: 13,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: enabled ? Colors.white : Colors.white54,
+              fontSize: 11,
+              fontWeight: enabled ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ],
       ),
     );
   }

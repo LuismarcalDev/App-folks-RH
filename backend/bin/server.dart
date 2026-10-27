@@ -7,9 +7,27 @@ import 'package:dotenv/dotenv.dart';
 import '../lib/config/database.dart';
 import '../lib/routes/usuario_routes.dart';
 
+Middleware _corsMiddleware() {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
+  };
+
+  return (Handler innerHandler) {
+    return (Request request) async {
+      if (request.method == 'OPTIONS') {
+        return Response.ok('', headers: corsHeaders);
+      }
+      final response = await innerHandler(request);
+      return response.change(headers: corsHeaders);
+    };
+  };
+}
+
 void main() async {
   final env = DotEnv(includePlatformEnvironment: true)..load();
-  final port = int.tryParse(env['PORT'] ?? '8080') ?? 8080;
+  final port = int.tryParse(env['PORT'] ?? '8081') ?? 8081;
 
   try {
     await Database.getConnection();
@@ -32,9 +50,9 @@ void main() async {
 
   final handler = Pipeline()
       .addMiddleware(logRequests())
+      .addMiddleware(_corsMiddleware())
       .addHandler(app.call);
 
   final server = await serve(handler, InternetAddress.anyIPv4, port);
   print('🚀 Servidor Folks RH rodando em: http://localhost:${server.port}');
 }
-

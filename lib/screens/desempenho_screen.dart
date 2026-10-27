@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
+import '../models/user_profile.dart';
 
 class DesempenhoScreen extends StatelessWidget {
   final List<Task>? tasks;
@@ -8,6 +9,54 @@ class DesempenhoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final perms = UserSession.current.permissions;
+
+    if (!perms.verDesempenho) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF404040),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF454545),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white54, width: 1.2),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.lock_person_outlined, color: Colors.amberAccent, size: 52),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'ACESSO RESTRITO AOS INDICADORES',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Olá, ${UserSession.current.name} (${UserSession.current.tipo.toUpperCase()}).\n'
+                      'Sua conta atualmente não possui a permissão "Visualizar Desempenho e Métricas".\n\n'
+                      'Um Administrador (ex: luis) pode liberar seu acesso pelo Painel de Permissões salvo no MySQL.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     final allTasks = tasks ?? mockTasks;
     final total = allTasks.length;
     final emAndamento = allTasks.where((t) => t.status == TaskStatus.emAndamento).length;

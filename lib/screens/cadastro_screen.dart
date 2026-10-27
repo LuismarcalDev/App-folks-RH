@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
+import '../services/api_service.dart';
 
 class CadastroScreen extends StatefulWidget {
   const CadastroScreen({super.key});
@@ -79,7 +80,13 @@ class _CadastroScreenState extends State<CadastroScreen> {
 
     setState(() => _isLoading = true);
 
-    await Future.delayed(const Duration(milliseconds: 600));
+    await ApiService.cadastrarUsuario(
+      nome: _nameController.text,
+      email: _emailController.text,
+      senha: _passwordController.text,
+      tipo: 'assistente',
+      codigoUtilizado: _authCodeController.text.trim(),
+    );
 
     if (!mounted) return;
     setState(() => _isLoading = false);

@@ -7,13 +7,15 @@ import '../services/usuario_service.dart';
 class UsuarioRoutes {
   final UsuarioService _service = UsuarioService();
 
+  static const _jsonHeaders = {'content-type': 'application/json; charset=utf-8'};
+
   Future<Response> login(Request request) async {
     try {
       final bodyString = await request.readAsString();
       if (bodyString.isEmpty) {
         return Response.badRequest(
           body: jsonEncode({'erro': 'O corpo da requisição não pode estar vazio.'}),
-          headers: {'content-type': 'application/json'},
+          headers: _jsonHeaders,
         );
       }
 
@@ -24,7 +26,7 @@ class UsuarioRoutes {
       if (email == null || email.isEmpty || senha == null || senha.isEmpty) {
         return Response.badRequest(
           body: jsonEncode({'erro': 'E-mail e senha são obrigatórios.'}),
-          headers: {'content-type': 'application/json'},
+          headers: _jsonHeaders,
         );
       }
 
@@ -34,7 +36,7 @@ class UsuarioRoutes {
         return Response(
           401,
           body: jsonEncode({'erro': 'E-mail ou senha incorretos.'}),
-          headers: {'content-type': 'application/json'},
+          headers: _jsonHeaders,
         );
       }
 
@@ -43,12 +45,12 @@ class UsuarioRoutes {
           'mensagem': 'Login realizado com sucesso!',
           'usuario': usuario.toJson(),
         }),
-        headers: {'content-type': 'application/json'},
+        headers: _jsonHeaders,
       );
     } catch (e) {
       return Response.internalServerError(
         body: jsonEncode({'erro': 'Erro ao realizar login: $e'}),
-        headers: {'content-type': 'application/json'},
+        headers: _jsonHeaders,
       );
     }
   }
@@ -56,13 +58,30 @@ class UsuarioRoutes {
   Router get router {
     final router = Router();
 
+    router.get('/', (Request request) async {
+      try {
+        final usuarios = await _service.listarTodos();
+        return Response.ok(
+          jsonEncode({
+            'usuarios': usuarios.map((u) => u.toJson()).toList(),
+          }),
+          headers: _jsonHeaders,
+        );
+      } catch (e) {
+        return Response.internalServerError(
+          body: jsonEncode({'erro': 'Erro ao listar usuários: $e'}),
+          headers: _jsonHeaders,
+        );
+      }
+    });
+
     router.post('/', (Request request) async {
       try {
         final bodyString = await request.readAsString();
         if (bodyString.isEmpty) {
           return Response.badRequest(
             body: jsonEncode({'erro': 'O corpo da requisição não pode estar vazio.'}),
-            headers: {'content-type': 'application/json'},
+            headers: _jsonHeaders,
           );
         }
 
@@ -77,17 +96,67 @@ class UsuarioRoutes {
             'mensagem': 'Funcionário cadastrado com sucesso!',
             'usuario': usuarioCadastrado.toJson(),
           }),
-          headers: {'content-type': 'application/json'},
+          headers: _jsonHeaders,
         );
       } on ArgumentError catch (e) {
         return Response.badRequest(
           body: jsonEncode({'erro': e.message}),
-          headers: {'content-type': 'application/json'},
+          headers: _jsonHeaders,
         );
       } catch (e) {
         return Response.internalServerError(
           body: jsonEncode({'erro': 'Erro ao cadastrar funcionário: $e'}),
-          headers: {'content-type': 'application/json'},
+          headers: _jsonHeaders,
+        );
+      }
+    });
+
+    router.put('/<id|[0-9]+>/permissoes', (Request request, String id) async {
+      try {
+        final usuarioId = int.parse(id);
+        final bodyString = await request.readAsString();
+        if (bodyString.isEmpty) {
+          return Response.badRequest(
+            body: jsonEncode({'erro': 'O corpo da requisição não pode estar vazio.'}),
+            headers: _jsonHeaders,
+          );
+        }
+
+        final Map<String, dynamic> bodyJson = jsonDecode(bodyString);
+        final novoTipo = bodyJson['tipo']?.toString().toLowerCase().trim();
+        final permMap = bodyJson['permissoes'] is Map<String, dynamic>
+            ? bodyJson['permissoes'] as Map<String, dynamic>
+            : bodyJson;
+
+        final permissoes = PermissoesUsuario.fromJson(
+          permMap,
+          fallbackTipo: novoTipo ?? 'assistente',
+        );
+
+        final atualizado = await _service.atualizarPermissoes(
+          usuarioId,
+          tipo: novoTipo,
+          permissoes: permissoes,
+        );
+
+        if (atualizado == null) {
+          return Response.notFound(
+            jsonEncode({'erro': 'Usuário não encontrado.'}),
+            headers: _jsonHeaders,
+          );
+        }
+
+        return Response.ok(
+          jsonEncode({
+            'mensagem': 'Permissões salvas no banco MySQL com sucesso!',
+            'usuario': atualizado.toJson(),
+          }),
+          headers: _jsonHeaders,
+        );
+      } catch (e) {
+        return Response.internalServerError(
+          body: jsonEncode({'erro': 'Erro ao atualizar permissões: $e'}),
+          headers: _jsonHeaders,
         );
       }
     });

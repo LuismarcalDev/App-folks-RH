@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
+import '../models/user_profile.dart';
 import '../widgets/create_task_modal.dart';
 import '../widgets/edit_task_modal.dart';
 import '../widgets/task_card.dart';
@@ -9,6 +10,7 @@ class TarefasScreen extends StatefulWidget {
   final Function(Task newTask)? onTaskCreated;
   final Function(Task task, TaskStatus newStatus)? onStatusUpdated;
   final Function(Task updatedTask)? onTaskEdited;
+  final Function(Task task)? onTaskDeleted;
 
   const TarefasScreen({
     super.key,
@@ -16,6 +18,7 @@ class TarefasScreen extends StatefulWidget {
     this.onTaskCreated,
     this.onStatusUpdated,
     this.onTaskEdited,
+    this.onTaskDeleted,
   });
 
   @override
@@ -43,7 +46,25 @@ class _TarefasScreenState extends State<TarefasScreen> {
     }
   }
 
+  void _showPermissionDenied(String acao) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Acesso negado: seu nível (${UserSession.current.tipo.toUpperCase()}) não possui permissão para $acao.',
+        ),
+        backgroundColor: Colors.redAccent.shade700,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   void _openCreateTask() {
+    if (!UserSession.current.permissions.criarTarefas) {
+      _showPermissionDenied('criar novas tarefas');
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -58,6 +79,11 @@ class _TarefasScreenState extends State<TarefasScreen> {
   }
 
   void _openEditTask(Task task) {
+    if (!UserSession.current.permissions.editarTarefas) {
+      _showPermissionDenied('editar tarefas');
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -75,6 +101,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
   @override
   Widget build(BuildContext context) {
     final tasks = _filteredTasks;
+    final perms = UserSession.current.permissions;
 
     return Scaffold(
       backgroundColor: const Color(0xFF404040),
@@ -103,18 +130,31 @@ class _TarefasScreenState extends State<TarefasScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E2856),
+                        color: perms.criarTarefas
+                            ? const Color(0xFF1E2856)
+                            : const Color(0xFF333333),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white, width: 1.0),
+                        border: Border.all(
+                          color: perms.criarTarefas ? Colors.white : Colors.white38,
+                          width: 1.0,
+                        ),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.add, color: Colors.white, size: 18),
-                          SizedBox(width: 4),
+                          Icon(
+                            perms.criarTarefas ? Icons.add : Icons.lock_outline,
+                            color: perms.criarTarefas ? Colors.white : Colors.white54,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
                           Text(
                             'Nova Tarefa',
-                            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: perms.criarTarefas ? Colors.white : Colors.white54,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -186,11 +226,19 @@ class _TarefasScreenState extends State<TarefasScreen> {
                         final task = tasks[index];
                         return TaskCard(
                           task: task,
-                          onStatusSelected: (newStatus) {
-                            widget.onStatusUpdated?.call(task, newStatus);
-                            setState(() {});
-                          },
-                          onEdit: () => _openEditTask(task),
+                          onStatusSelected: perms.alterarStatus
+                              ? (newStatus) {
+                                  widget.onStatusUpdated?.call(task, newStatus);
+                                  setState(() {});
+                                }
+                              : null,
+                          onStatusChanged: perms.alterarStatus
+                              ? null
+                              : () => _showPermissionDenied('alterar o status de tarefas'),
+                          onEdit: perms.editarTarefas ? () => _openEditTask(task) : null,
+                          onDelete: perms.excluirTarefas
+                              ? () => widget.onTaskDeleted?.call(task)
+                              : null,
                         );
                       },
                     ),

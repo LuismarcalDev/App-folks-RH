@@ -8,6 +8,7 @@ class TaskCard extends StatefulWidget {
   final VoidCallback? onStatusChanged;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const TaskCard({
     super.key,
@@ -16,6 +17,7 @@ class TaskCard extends StatefulWidget {
     this.onStatusChanged,
     this.onTap,
     this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -261,44 +263,84 @@ class _TaskCardState extends State<TaskCard> {
                       fontStyle: FontStyle.italic,
                     ),
                   ),
-                  if (widget.onEdit != null) ...[
+                  if (widget.onEdit != null || widget.onDelete != null) ...[
                     const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: InkWell(
-                        onTap: widget.onEdit,
-                        borderRadius: BorderRadius.circular(6),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E2856),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (widget.onDelete != null) ...[
+                          InkWell(
+                            onTap: widget.onDelete,
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1.0,
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.edit_outlined, color: Colors.white, size: 14),
-                              SizedBox(width: 5),
-                              Text(
-                                'Editar Tarefa',
-                                style: TextStyle(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent.shade700,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
                                   color: Colors.white,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.3,
+                                  width: 1.0,
                                 ),
                               ),
-                            ],
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.delete_outline, color: Colors.white, size: 14),
+                                  SizedBox(width: 5),
+                                  Text(
+                                    'Excluir',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                          const SizedBox(width: 8),
+                        ],
+                        if (widget.onEdit != null)
+                          InkWell(
+                            onTap: widget.onEdit,
+                            borderRadius: BorderRadius.circular(6),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E2856),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 1.0,
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.edit_outlined, color: Colors.white, size: 14),
+                                  SizedBox(width: 5),
+                                  Text(
+                                    'Editar Tarefa',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ],
