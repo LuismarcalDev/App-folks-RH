@@ -1,23 +1,50 @@
 import 'package:flutter/material.dart';
 
 enum TaskPriority {
-  alta('Alta', Color(0xFFE57373)),
-  media('Média', Color(0xFFFFB74D)),
-  baixa('Baixa', Color(0xFF81C784));
+  alta('Alta', Color(0xFFE57373), 'alta'),
+  media('Média', Color(0xFFFFB74D), 'media'),
+  baixa('Baixa', Color(0xFF81C784), 'baixa');
 
-  const TaskPriority(this.label, this.color);
+  const TaskPriority(this.label, this.color, this.backendKey);
   final String label;
   final Color color;
+  final String backendKey;
+
+  static TaskPriority fromBackend(String? val) {
+    switch (val?.toLowerCase().trim()) {
+      case 'alta':
+        return TaskPriority.alta;
+      case 'baixa':
+        return TaskPriority.baixa;
+      case 'media':
+      default:
+        return TaskPriority.media;
+    }
+  }
 }
 
 enum TaskStatus {
-  emAndamento('EM ANDAMENTO', Color(0xFF1E2856)),
-  pendente('PENDENTE', Color(0xFFB45309)),
-  concluido('CONCLUÍDO', Color(0xFF15803D));
+  emAndamento('EM ANDAMENTO', Color(0xFF1E2856), 'em_andamento'),
+  pendente('PENDENTE', Color(0xFFB45309), 'pendente'),
+  concluido('CONCLUÍDO', Color(0xFF15803D), 'concluida');
 
-  const TaskStatus(this.label, this.color);
+  const TaskStatus(this.label, this.color, this.backendKey);
   final String label;
   final Color color;
+  final String backendKey;
+
+  static TaskStatus fromBackend(String? val) {
+    switch (val?.toLowerCase().trim()) {
+      case 'pendente':
+        return TaskStatus.pendente;
+      case 'concluida':
+      case 'concluido':
+        return TaskStatus.concluido;
+      case 'em_andamento':
+      default:
+        return TaskStatus.emAndamento;
+    }
+  }
 }
 
 class Task {
@@ -62,6 +89,38 @@ class Task {
     this.isViewed = true,
     this.section = 'NA ÚLTIMA SEMANA',
   });
+
+  factory Task.fromJson(Map<String, dynamic> json) {
+    final manager = (json['managerName'] ?? 'LUIS FELIPPE').toString();
+    return Task(
+      id: (json['id'] ?? DateTime.now().millisecondsSinceEpoch).toString(),
+      title: (json['title'] ?? '').toString(),
+      description: (json['description'] ?? 'Sem descrição cadastrada.').toString(),
+      priority: TaskPriority.fromBackend(json['priority']?.toString()),
+      dueDate: (json['dueDate'] ?? '25/08/2026').toString(),
+      timeAgo: (json['timeAgo'] ?? 'Agora').toString(),
+      managerName: manager,
+      managerInitials: (json['managerInitials'] ?? 'L F').toString(),
+      status: TaskStatus.fromBackend(json['status']?.toString()),
+      isViewed: json['isViewed'] == null ? true : (json['isViewed'] == true || json['isViewed'] == 1),
+    );
+  }
+
+  Map<String, dynamic> toJson({int? userId}) {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'priority': priority.backendKey,
+      'dueDate': dueDate,
+      'timeAgo': timeAgo,
+      'managerName': managerName,
+      'managerInitials': managerInitials,
+      'status': status.backendKey,
+      'isViewed': isViewed,
+      'userId': ?userId,
+    };
+  }
 
   Task copyWith({
     String? id,
@@ -147,6 +206,11 @@ final List<Task> mockTasks = [
   ),
 ];
 
+/// Gerencia a lista global de tarefas em sessão (sincronizada com o MySQL quando online)
+class TaskSession {
+  static List<Task> tasks = List.from(mockTasks);
+}
+
 class ManagerOption {
   final String name;
   final String initials;
@@ -161,4 +225,3 @@ const List<ManagerOption> availableManagers = [
   ManagerOption(name: 'IGOR VEIGA', initials: 'I V'),
   ManagerOption(name: 'MARIANA DIAS', initials: 'M D'),
 ];
-

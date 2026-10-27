@@ -3,6 +3,7 @@ import 'package:mysql_client/mysql_client.dart';
 
 class Database {
   static MySQLConnection? _connection;
+  static bool _schemaChecked = false;
 
   static Future<MySQLConnection> getConnection() async {
     if (_connection != null && _connection!.connected) {
@@ -29,11 +30,34 @@ class Database {
       await conn.connect();
       _connection = conn;
       print('✅ [MySQL] Conectado com sucesso ao banco de dados "$db"!');
+
+      if (!_schemaChecked) {
+        await _ensureSchema(conn);
+        _schemaChecked = true;
+      }
+
       return _connection!;
     } catch (e) {
       print('❌ [MySQL] Erro ao conectar ao MySQL: $e');
       rethrow;
     }
+  }
+
+  static Future<void> _ensureSchema(MySQLConnection conn) async {
+    try {
+      await conn.execute('''
+        CREATE TABLE IF NOT EXISTS permissoes_usuario (
+          Usuario_Id INT NOT NULL PRIMARY KEY,
+          Criar_Tarefas TINYINT(1) NOT NULL DEFAULT 0,
+          Editar_Tarefas TINYINT(1) NOT NULL DEFAULT 1,
+          Excluir_Tarefas TINYINT(1) NOT NULL DEFAULT 1,
+          Alterar_Status TINYINT(1) NOT NULL DEFAULT 1,
+          Ver_Desempenho TINYINT(1) NOT NULL DEFAULT 0,
+          Gerenciar_Permissoes TINYINT(1) NOT NULL DEFAULT 0,
+          CONSTRAINT fk_permissoes_usuario FOREIGN KEY (Usuario_Id) REFERENCES usuarios (Id) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      ''');
+    } catch (_) {}
   }
 
   static Future<void> close() async {

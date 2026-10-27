@@ -80,7 +80,7 @@ class _DashboardContentState extends State<DashboardContent> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Acesso negado: seu nível (${UserSession.current.tipo.toUpperCase()}) não possui permissão para $acao.',
+          'Acesso negado: apenas pessoas com permissão podem $acao (seu nível: ${UserSession.current.tipo.toUpperCase()}).',
         ),
         backgroundColor: Colors.redAccent.shade700,
         behavior: SnackBarBehavior.floating,
@@ -90,7 +90,7 @@ class _DashboardContentState extends State<DashboardContent> {
 
   void _showNewTaskDialog() {
     if (!UserSession.current.permissions.criarTarefas) {
-      _showPermissionDenied('criar novas tarefas');
+      _showPermissionDenied('criar tarefas');
       return;
     }
 
@@ -100,6 +100,9 @@ class _DashboardContentState extends State<DashboardContent> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => CreateTaskModal(
         onTaskCreated: (newTask) {
+          setState(() {
+            _selectedTab = 0;
+          });
           widget.onTaskCreated?.call(newTask);
         },
       ),
@@ -169,11 +172,11 @@ class _DashboardContentState extends State<DashboardContent> {
                   child: Container(
                     padding: const EdgeInsets.fromLTRB(4, 4, 14, 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF404040),
+                      color: const Color(0xFF232329),
                       borderRadius: BorderRadius.circular(28),
                       border: Border.all(
-                        color: Colors.white,
-                        width: 1.2,
+                        color: Colors.white.withValues(alpha: 0.16),
+                        width: 1.0,
                       ),
                     ),
                     child: Row(
@@ -205,7 +208,10 @@ class _DashboardContentState extends State<DashboardContent> {
                                 ? Colors.amber.shade800
                                 : const Color(0xFF1E2856),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.white54, width: 0.8),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.20),
+                              width: 0.8,
+                            ),
                           ),
                           child: Text(
                             UserSession.current.tipo.toUpperCase(),
@@ -239,8 +245,8 @@ class _DashboardContentState extends State<DashboardContent> {
                             borderRadius: BorderRadius.circular(24),
                             color: const Color(0xFF1E2856),
                             border: Border.all(
-                              color: Colors.amberAccent,
-                              width: 1.2,
+                              color: Colors.amberAccent.withValues(alpha: 0.45),
+                              width: 1.0,
                             ),
                           ),
                           child: const Row(
@@ -269,27 +275,34 @@ class _DashboardContentState extends State<DashboardContent> {
                   ],
 
                   // Plus Button (+)
-                  InkWell(
-                    onTap: _showNewTaskDialog,
-                    borderRadius: BorderRadius.circular(24),
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: perms.criarTarefas
-                            ? const Color(0xFF404040)
-                            : const Color(0xFF333333),
-                        border: Border.all(
-                          color: perms.criarTarefas ? Colors.white : Colors.white38,
-                          width: 1.2,
+                  Tooltip(
+                    message: perms.criarTarefas
+                        ? 'Criar Nova Tarefa'
+                        : 'Apenas pessoas com permissão podem criar tarefas',
+                    child: InkWell(
+                      onTap: _showNewTaskDialog,
+                      borderRadius: BorderRadius.circular(24),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: perms.criarTarefas
+                              ? const Color(0xFF232329)
+                              : const Color(0xFF1C1C21),
+                          border: Border.all(
+                            color: perms.criarTarefas
+                                ? Colors.white.withValues(alpha: 0.18)
+                                : Colors.white.withValues(alpha: 0.10),
+                            width: 1.0,
+                          ),
                         ),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          perms.criarTarefas ? Icons.add : Icons.lock_outline,
-                          color: perms.criarTarefas ? Colors.white : Colors.white54,
-                          size: perms.criarTarefas ? 26 : 20,
+                        child: Center(
+                          child: Icon(
+                            perms.criarTarefas ? Icons.add : Icons.lock_outline,
+                            color: perms.criarTarefas ? Colors.white : Colors.white54,
+                            size: perms.criarTarefas ? 26 : 20,
+                          ),
                         ),
                       ),
                     ),
@@ -305,11 +318,11 @@ class _DashboardContentState extends State<DashboardContent> {
           Container(
             height: 42,
             decoration: BoxDecoration(
-              color: const Color(0xFF404040),
+              color: const Color(0xFF232329),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: Colors.white,
-                width: 1.2,
+                color: Colors.white.withValues(alpha: 0.16),
+                width: 1.0,
               ),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -333,8 +346,8 @@ class _DashboardContentState extends State<DashboardContent> {
                 ),
                 const Icon(
                   Icons.search,
-                  color: Colors.white,
-                  size: 24,
+                  color: Colors.white70,
+                  size: 22,
                 ),
               ],
             ),
@@ -346,11 +359,11 @@ class _DashboardContentState extends State<DashboardContent> {
           Container(
             height: 38,
             decoration: BoxDecoration(
-              color: const Color(0xFF404040),
+              color: const Color(0xFF232329),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white,
-                width: 1.2,
+                color: Colors.white.withValues(alpha: 0.16),
+                width: 1.0,
               ),
             ),
             child: Row(
@@ -369,7 +382,7 @@ class _DashboardContentState extends State<DashboardContent> {
                       child: Text(
                         'Visualizado',
                         style: TextStyle(
-                          color: _selectedTab == 0 ? const Color(0xFF333333) : Colors.white,
+                          color: _selectedTab == 0 ? const Color(0xFF18181C) : Colors.white,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -392,7 +405,7 @@ class _DashboardContentState extends State<DashboardContent> {
                       child: Text(
                         'Novas Tarefas',
                         style: TextStyle(
-                          color: _selectedTab == 1 ? const Color(0xFF333333) : Colors.white,
+                          color: _selectedTab == 1 ? const Color(0xFF18181C) : Colors.white,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -421,7 +434,7 @@ class _DashboardContentState extends State<DashboardContent> {
               const SizedBox(width: 6),
               Icon(
                 Icons.public,
-                color: Colors.white.withValues(alpha: 0.9),
+                color: Colors.white.withValues(alpha: 0.8),
                 size: 16,
               ),
             ],
@@ -429,7 +442,7 @@ class _DashboardContentState extends State<DashboardContent> {
           const SizedBox(height: 6),
           Container(
             height: 1,
-            color: Colors.white.withValues(alpha: 0.9),
+            color: Colors.white.withValues(alpha: 0.14),
           ),
 
           const SizedBox(height: 16),
@@ -444,7 +457,7 @@ class _DashboardContentState extends State<DashboardContent> {
                   Icon(
                     Icons.inbox_outlined,
                     size: 48,
-                    color: Colors.white.withValues(alpha: 0.5),
+                    color: Colors.white.withValues(alpha: 0.4),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -454,7 +467,7 @@ class _DashboardContentState extends State<DashboardContent> {
                             ? 'Nenhuma tarefa visualizada'
                             : 'Nenhuma nova tarefa no momento',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: Colors.white.withValues(alpha: 0.65),
                       fontSize: 13.5,
                     ),
                   ),
@@ -470,10 +483,12 @@ class _DashboardContentState extends State<DashboardContent> {
                   onStatusChanged: perms.alterarStatus
                       ? null
                       : () => _showPermissionDenied('alterar o status de tarefas'),
-                  onEdit: perms.editarTarefas ? () => _openEditTask(task) : null,
+                  onEdit: perms.editarTarefas
+                      ? () => _openEditTask(task)
+                      : () => _showPermissionDenied('editar tarefas'),
                   onDelete: perms.excluirTarefas
                       ? () => widget.onTaskDeleted?.call(task)
-                      : null,
+                      : () => _showPermissionDenied('excluir tarefas'),
                 )),
         ],
       ),

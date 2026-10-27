@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
+import '../models/user_profile.dart';
+import '../services/api_service.dart';
 import 'dashboard_screen.dart';
 import 'desempenho_screen.dart';
 import 'notificacoes_screen.dart';
@@ -22,27 +24,63 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    _tasks = List.from(mockTasks);
+    _tasks = List.from(TaskSession.tasks);
+    _loadTasksFromBackend();
   }
 
-  void _onTaskCreated(Task newTask) {
+  Future<void> _loadTasksFromBackend() async {
+    final loaded = await ApiService.listarTarefas();
+    if (!mounted) return;
     setState(() {
-      _tasks.insert(0, newTask);
+      _tasks = List.from(loaded);
     });
   }
 
-  void _onStatusUpdated(Task task, TaskStatus newStatus) {
+  Future<void> _onTaskCreated(Task newTask) async {
+    if (!UserSession.current.permissions.criarTarefas) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Acesso negado: apenas pessoas que possuem permissão podem criar tarefas.',
+          ),
+          backgroundColor: Colors.redAccent.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final created = await ApiService.criarTarefa(newTask);
+    if (!mounted || created == null) return;
+
     setState(() {
-      final index = _tasks.indexWhere((t) => t.id == task.id);
-      if (index != -1) {
-        _tasks[index] = task.copyWith(status: newStatus);
-      }
+      _tasks = List.from(TaskSession.tasks);
     });
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Status atualizado para: ${newStatus.label}'),
+        content: Text('Tarefa "${created.title}" criada com sucesso!'),
+        backgroundColor: const Color(0xFF15803D),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _onStatusUpdated(Task task, TaskStatus newStatus) async {
+    await ApiService.alterarStatusTarefa(task, newStatus);
+    if (!mounted) return;
+
+    setState(() {
+      _tasks = List.from(TaskSession.tasks);
+    });
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Status alterado para: ${newStatus.label}'),
         backgroundColor: newStatus.color,
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
@@ -50,18 +88,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  void _onTaskUpdated(Task updatedTask) {
+  Future<void> _onTaskUpdated(Task updatedTask) async {
+    await ApiService.editarTarefa(updatedTask);
+    if (!mounted) return;
+
     setState(() {
-      final index = _tasks.indexWhere((t) => t.id == updatedTask.id);
-      if (index != -1) {
-        _tasks[index] = updatedTask;
-      }
+      _tasks = List.from(TaskSession.tasks);
     });
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Tarefa atualizada com sucesso!'),
+        content: Text('Tarefa editada e alterada com sucesso!'),
         backgroundColor: Color(0xFF1E2856),
         duration: Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
@@ -69,9 +107,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 
-  void _onTaskDeleted(Task task) {
+  Future<void> _onTaskDeleted(Task task) async {
+    await ApiService.excluirTarefa(task);
+    if (!mounted) return;
+
     setState(() {
-      _tasks.removeWhere((t) => t.id == task.id);
+      _tasks = List.from(TaskSession.tasks);
     });
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -108,7 +149,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF404040),
+      backgroundColor: const Color(0xFF18181C),
       body: Stack(
         children: [
           // IndexedStack preserves the scroll position and state of all tabs
@@ -125,16 +166,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF404040),
+                color: const Color(0xFF222228),
                 borderRadius: BorderRadius.circular(36),
                 border: Border.all(
-                  color: Colors.white,
-                  width: 1.4,
+                  color: Colors.white.withValues(alpha: 0.16),
+                  width: 1.0,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 10,
+                    color: Colors.black.withValues(alpha: 0.5),
+                    blurRadius: 14,
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -192,14 +233,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.white : Colors.white70,
+              color: isSelected ? Colors.white : Colors.white60,
               size: 22,
             ),
             const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
+                color: isSelected ? Colors.white : Colors.white60,
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),

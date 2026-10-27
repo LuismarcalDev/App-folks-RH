@@ -35,10 +35,13 @@ class UsuarioService {
       gerenciarPermissoes: toBool(row.colAt(13), padrao.gerenciarPermissoes),
     );
 
+    final funcaoNome = row.colAt(14);
+
     return UsuarioModel(
       id: id,
       nome: nome,
       tipo: tipo,
+      funcaoNome: funcaoNome,
       setorId: setorId,
       email: email,
       telefone: telefone,
@@ -55,13 +58,14 @@ class UsuarioService {
 
     const sqlUsuario = '''
       INSERT INTO usuarios (
-        Nome, Tipo, Setor_Id, E_mail, Telefone, Senha, Codigo_Autenticacao_Id, Codigo_Utilizado
-      ) VALUES (:nome, :tipo, :setorId, :email, :telefone, :senha, :codId, :codUtilizado);
+        Nome, Tipo, Funcao_Nome, Setor_Id, E_mail, Telefone, Senha, Codigo_Autenticacao_Id, Codigo_Utilizado
+      ) VALUES (:nome, :tipo, :funcaoNome, :setorId, :email, :telefone, :senha, :codId, :codUtilizado);
     ''';
 
     final resultado = await conn.execute(sqlUsuario, {
       'nome': usuario.nome,
       'tipo': usuario.tipo,
+      'funcaoNome': usuario.funcaoNome,
       'setorId': usuario.setorId,
       'email': usuario.email,
       'telefone': usuario.telefone,
@@ -101,6 +105,7 @@ class UsuarioService {
       id: novoId,
       nome: usuario.nome,
       tipo: usuario.tipo,
+      funcaoNome: usuario.funcaoNome,
       setorId: usuario.setorId,
       email: usuario.email,
       telefone: usuario.telefone,
@@ -117,7 +122,8 @@ class UsuarioService {
 
     const sql = '''
       SELECT u.Id, u.Nome, u.Tipo, u.Setor_Id, u.E_mail, u.Telefone, u.Codigo_Autenticacao_Id, u.Codigo_Utilizado,
-             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes
+             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes,
+             u.Funcao_Nome
       FROM usuarios u
       LEFT JOIN permissoes_usuario p ON p.Usuario_Id = u.Id
       WHERE (
@@ -147,7 +153,8 @@ class UsuarioService {
 
     const sql = '''
       SELECT u.Id, u.Nome, u.Tipo, u.Setor_Id, u.E_mail, u.Telefone, u.Codigo_Autenticacao_Id, u.Codigo_Utilizado,
-             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes
+             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes,
+             u.Funcao_Nome
       FROM usuarios u
       LEFT JOIN permissoes_usuario p ON p.Usuario_Id = u.Id
       ORDER BY u.Id ASC;
@@ -162,7 +169,8 @@ class UsuarioService {
 
     const sql = '''
       SELECT u.Id, u.Nome, u.Tipo, u.Setor_Id, u.E_mail, u.Telefone, u.Codigo_Autenticacao_Id, u.Codigo_Utilizado,
-             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes
+             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes,
+             u.Funcao_Nome
       FROM usuarios u
       LEFT JOIN permissoes_usuario p ON p.Usuario_Id = u.Id
       WHERE u.Id = :id
@@ -177,14 +185,15 @@ class UsuarioService {
   Future<UsuarioModel?> atualizarPermissoes(
     int usuarioId, {
     String? tipo,
+    String? funcaoNome,
     required PermissoesUsuario permissoes,
   }) async {
     final conn = await Database.getConnection();
 
     if (tipo != null && tipo.trim().isNotEmpty) {
       await conn.execute(
-        'UPDATE usuarios SET Tipo = :tipo WHERE Id = :id;',
-        {'tipo': tipo.trim().toLowerCase(), 'id': usuarioId},
+        'UPDATE usuarios SET Tipo = :tipo, Funcao_Nome = COALESCE(:funcaoNome, Funcao_Nome) WHERE Id = :id;',
+        {'tipo': tipo.trim().toLowerCase(), 'funcaoNome': funcaoNome, 'id': usuarioId},
       );
     }
 

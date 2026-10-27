@@ -13,7 +13,7 @@ class DesempenhoScreen extends StatelessWidget {
 
     if (!perms.verDesempenho) {
       return Scaffold(
-        backgroundColor: const Color(0xFF404040),
+        backgroundColor: const Color(0xFF18181C),
         body: SafeArea(
           child: Center(
             child: Padding(
@@ -21,9 +21,12 @@ class DesempenhoScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF454545),
+                  color: const Color(0xFF232329),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white54, width: 1.2),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.14),
+                    width: 1.0,
+                  ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -57,14 +60,14 @@ class DesempenhoScreen extends StatelessWidget {
       );
     }
 
-    final allTasks = tasks ?? mockTasks;
+    final allTasks = tasks ?? TaskSession.tasks;
     final total = allTasks.length;
     final emAndamento = allTasks.where((t) => t.status == TaskStatus.emAndamento).length;
     final pendentes = allTasks.where((t) => t.status == TaskStatus.pendente).length;
     final concluidas = allTasks.where((t) => t.status == TaskStatus.concluido).length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF404040),
+      backgroundColor: const Color(0xFF18181C),
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -107,9 +110,12 @@ class DesempenhoScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF454545),
+                color: const Color(0xFF232329),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white, width: 1.2),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  width: 1.0,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,9 +181,12 @@ class DesempenhoScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF454545),
+                color: const Color(0xFF232329),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white, width: 1.2),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  width: 1.0,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,7 +215,10 @@ class DesempenhoScreen extends StatelessWidget {
                       height: 140,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white24, width: 1.0),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.14),
+                          width: 1.0,
+                        ),
                       ),
                       child: Center(
                         child: Container(
@@ -214,7 +226,10 @@ class DesempenhoScreen extends StatelessWidget {
                           height: 85,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white38, width: 1.0),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.22),
+                              width: 1.0,
+                            ),
                             color: const Color(0xFF1E2856).withValues(alpha: 0.3),
                           ),
                           child: const Center(
@@ -247,7 +262,10 @@ class DesempenhoScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white54, width: 1.0),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.18),
+            width: 1.0,
+          ),
         ),
         child: Column(
           children: [

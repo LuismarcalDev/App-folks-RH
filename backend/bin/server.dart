@@ -5,12 +5,14 @@ import 'package:shelf_router/shelf_router.dart';
 import 'package:dotenv/dotenv.dart';
 
 import '../lib/config/database.dart';
+import '../lib/routes/funcao_routes.dart';
+import '../lib/routes/tarefa_routes.dart';
 import '../lib/routes/usuario_routes.dart';
 
 Middleware _corsMiddleware() {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
   };
 
@@ -37,8 +39,12 @@ void main() async {
 
   final app = Router();
   final usuarioRoutes = UsuarioRoutes();
+  final tarefaRoutes = TarefaRoutes();
+  final funcaoRoutes = FuncaoRoutes();
 
   app.mount('/usuarios', usuarioRoutes.router.call);
+  app.mount('/tarefas', tarefaRoutes.router.call);
+  app.mount('/funcoes', funcaoRoutes.router.call);
   app.post('/login', usuarioRoutes.login);
 
   app.get('/health', (Request req) {

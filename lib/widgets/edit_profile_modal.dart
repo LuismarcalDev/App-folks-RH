@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import 'custom_badges.dart';
@@ -97,19 +96,19 @@ class _EditProfileModalState extends State<EditProfileModal> {
       hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
       prefixIcon: Icon(prefixIcon, color: Colors.white70, size: 20),
       filled: true,
-      fillColor: const Color(0xFF2E2E2E),
+      fillColor: const Color(0xFF27272F),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Colors.white24, width: 1.0),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Colors.white24, width: 1.0),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: Colors.white, width: 1.4),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.35), width: 1.2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -126,13 +125,13 @@ class _EditProfileModalState extends State<EditProfileModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF383838),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E24),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: Border(
-          top: BorderSide(color: Colors.white, width: 1.4),
-          left: BorderSide(color: Colors.white, width: 1.4),
-          right: BorderSide(color: Colors.white, width: 1.4),
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
+          left: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
+          right: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
         ),
       ),
       padding: EdgeInsets.only(
@@ -154,7 +153,7 @@ class _EditProfileModalState extends State<EditProfileModal> {
                   width: 44,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white30,
+                    color: Colors.white24,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -180,7 +179,7 @@ class _EditProfileModalState extends State<EditProfileModal> {
                   ),
                 ],
               ),
-              const Divider(color: Colors.white24, height: 16),
+              Divider(color: Colors.white.withValues(alpha: 0.12), height: 16),
               const SizedBox(height: 12),
 
               // --- AVATAR SELECTION SECTION ---
@@ -213,11 +212,13 @@ class _EditProfileModalState extends State<EditProfileModal> {
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF1E2856) : const Color(0xFF2E2E2E),
+                            color: isSelected ? const Color(0xFF1E2856) : const Color(0xFF27272F),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isSelected ? Colors.white : Colors.white24,
-                              width: isSelected ? 1.5 : 1.0,
+                              color: isSelected
+                                  ? Colors.white.withValues(alpha: 0.35)
+                                  : Colors.white.withValues(alpha: 0.12),
+                              width: isSelected ? 1.3 : 1.0,
                             ),
                           ),
                           child: Row(
@@ -342,7 +343,7 @@ class _EditProfileModalState extends State<EditProfileModal> {
                       onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: const BorderSide(color: Colors.white38, width: 1.0),
+                        side: BorderSide(color: Colors.white.withValues(alpha: 0.18), width: 1.0),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -376,7 +377,7 @@ class _EditProfileModalState extends State<EditProfileModal> {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(color: Colors.white, width: 1.2),
+                          side: BorderSide(color: Colors.white.withValues(alpha: 0.22), width: 1.0),
                         ),
                         elevation: 2,
                       ),

@@ -30,7 +30,7 @@ class PermissoesUsuario {
         return const PermissoesUsuario(
           criarTarefas: true,
           editarTarefas: true,
-          excluirTarefas: false,
+          excluirTarefas: true,
           alterarStatus: true,
           verDesempenho: true,
           gerenciarPermissoes: false,
@@ -38,8 +38,8 @@ class PermissoesUsuario {
       case 'analista':
         return const PermissoesUsuario(
           criarTarefas: true,
-          editarTarefas: false,
-          excluirTarefas: false,
+          editarTarefas: true,
+          excluirTarefas: true,
           alterarStatus: true,
           verDesempenho: true,
           gerenciarPermissoes: false,
@@ -49,8 +49,8 @@ class PermissoesUsuario {
       default:
         return const PermissoesUsuario(
           criarTarefas: false,
-          editarTarefas: false,
-          excluirTarefas: false,
+          editarTarefas: true,
+          excluirTarefas: true,
           alterarStatus: true,
           verDesempenho: false,
           gerenciarPermissoes: false,
@@ -94,6 +94,7 @@ class UsuarioModel {
   final int? id;
   final String nome;
   final String tipo;
+  final String? funcaoNome;
   final int? setorId;
   final String email;
   final String? telefone;
@@ -106,6 +107,7 @@ class UsuarioModel {
     this.id,
     required this.nome,
     required this.tipo,
+    this.funcaoNome,
     this.setorId,
     required this.email,
     this.telefone,
@@ -144,6 +146,7 @@ class UsuarioModel {
       id: json['id'] as int?,
       nome: json['nome'].toString().trim(),
       tipo: tipoInformado,
+      funcaoNome: json['funcao_nome']?.toString().trim(),
       setorId: json['setor_id'] as int?,
       email: json['email'].toString().trim(),
       telefone: json['telefone'] as String?,
@@ -159,6 +162,7 @@ class UsuarioModel {
       'id': id,
       'nome': nome,
       'tipo': tipo,
+      'funcao_nome': funcaoNome,
       'setor_id': setorId,
       'email': email,
       'telefone': telefone,

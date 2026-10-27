@@ -30,7 +30,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
 
   final List<String> _filters = ['Todas', 'Em Andamento', 'Pendentes', 'Concluídas'];
 
-  List<Task> get _currentTasks => widget.tasks ?? mockTasks;
+  List<Task> get _currentTasks => widget.tasks ?? TaskSession.tasks;
 
   List<Task> get _filteredTasks {
     final all = _currentTasks;
@@ -51,7 +51,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Acesso negado: seu nível (${UserSession.current.tipo.toUpperCase()}) não possui permissão para $acao.',
+          'Acesso negado: apenas pessoas com permissão podem $acao (seu nível: ${UserSession.current.tipo.toUpperCase()}).',
         ),
         backgroundColor: Colors.redAccent.shade700,
         behavior: SnackBarBehavior.floating,
@@ -61,7 +61,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
 
   void _openCreateTask() {
     if (!UserSession.current.permissions.criarTarefas) {
-      _showPermissionDenied('criar novas tarefas');
+      _showPermissionDenied('criar tarefas');
       return;
     }
 
@@ -104,7 +104,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
     final perms = UserSession.current.permissions;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF404040),
+      backgroundColor: const Color(0xFF18181C),
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -132,10 +132,12 @@ class _TarefasScreenState extends State<TarefasScreen> {
                       decoration: BoxDecoration(
                         color: perms.criarTarefas
                             ? const Color(0xFF1E2856)
-                            : const Color(0xFF333333),
+                            : const Color(0xFF232329),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: perms.criarTarefas ? Colors.white : Colors.white38,
+                          color: perms.criarTarefas
+                              ? Colors.white.withValues(alpha: 0.22)
+                              : Colors.white.withValues(alpha: 0.12),
                           width: 1.0,
                         ),
                       ),
@@ -182,16 +184,18 @@ class _TarefasScreenState extends State<TarefasScreen> {
                         if (selected) setState(() => _selectedFilterIndex = index);
                       },
                       selectedColor: Colors.white,
-                      backgroundColor: const Color(0xFF4A4A4A),
+                      backgroundColor: const Color(0xFF232329),
                       labelStyle: TextStyle(
-                        color: isSelected ? const Color(0xFF333333) : Colors.white,
+                        color: isSelected ? const Color(0xFF18181C) : Colors.white,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         fontSize: 12,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                         side: BorderSide(
-                          color: isSelected ? Colors.white : Colors.white24,
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.35)
+                              : Colors.white.withValues(alpha: 0.12),
                         ),
                       ),
                       showCheckmark: false,
@@ -214,7 +218,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
                           const SizedBox(height: 12),
                           Text(
                             'Nenhuma tarefa nesta categoria',
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
+                            style: TextStyle(color: Colors.white.withValues(alpha: 0.65), fontSize: 14),
                           ),
                         ],
                       ),
@@ -235,10 +239,12 @@ class _TarefasScreenState extends State<TarefasScreen> {
                           onStatusChanged: perms.alterarStatus
                               ? null
                               : () => _showPermissionDenied('alterar o status de tarefas'),
-                          onEdit: perms.editarTarefas ? () => _openEditTask(task) : null,
+                          onEdit: perms.editarTarefas
+                              ? () => _openEditTask(task)
+                              : () => _showPermissionDenied('editar tarefas'),
                           onDelete: perms.excluirTarefas
                               ? () => widget.onTaskDeleted?.call(task)
-                              : null,
+                              : () => _showPermissionDenied('excluir tarefas'),
                         );
                       },
                     ),
