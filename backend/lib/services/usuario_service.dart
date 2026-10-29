@@ -5,20 +5,21 @@ import '../config/database.dart';
 import '../models/usuario_model.dart';
 
 class UsuarioService {
-  String _gerarHashSenha(String senhaPura) {
+  String gerarHashSenha(String senhaPura) {
     final bytes = utf8.encode(senhaPura);
     return sha256.convert(bytes).toString();
   }
 
-  UsuarioModel _mapRowToUsuario(ResultSetRow row) {
-    final id = int.tryParse(row.colAt(0) ?? '');
-    final nome = row.colAt(1) ?? '';
-    final tipo = row.colAt(2) ?? 'assistente';
-    final setorId = int.tryParse(row.colAt(3) ?? '');
-    final email = row.colAt(4) ?? '';
-    final telefone = row.colAt(5);
-    final codigoAutenticacaoId = int.tryParse(row.colAt(6) ?? '');
-    final codigoUtilizado = row.colAt(7);
+  UsuarioModel mapRowToUsuario(ResultSetRow row) {
+    final id = int.tryParse(row.colByName('Id') ?? '');
+    final nome = row.colByName('Nome') ?? '';
+    final tipo = row.colByName('Tipo') ?? 'assistente';
+    final setorId = int.tryParse(row.colByName('Setor_Id') ?? '');
+    final email = row.colByName('E_mail') ?? '';
+    final telefone = row.colByName('Telefone');
+    final codigoAutenticacaoId = int.tryParse(row.colByName('Codigo_Autenticacao_Id') ?? '');
+    final codigoUtilizado = row.colByName('Codigo_Utilizado');
+    final funcaoNome = row.colByName('Funcao_Nome');
 
     final padrao = PermissoesUsuario.padraoPorTipo(tipo);
     bool toBool(String? val, bool fallback) {
@@ -27,15 +28,19 @@ class UsuarioService {
     }
 
     final permissoes = PermissoesUsuario(
-      criarTarefas: toBool(row.colAt(8), padrao.criarTarefas),
-      editarTarefas: toBool(row.colAt(9), padrao.editarTarefas),
-      excluirTarefas: toBool(row.colAt(10), padrao.excluirTarefas),
-      alterarStatus: toBool(row.colAt(11), padrao.alterarStatus),
-      verDesempenho: toBool(row.colAt(12), padrao.verDesempenho),
-      gerenciarPermissoes: toBool(row.colAt(13), padrao.gerenciarPermissoes),
+      clientes: toBool(row.colByName('Clientes'), padrao.clientes),
+      tarefas: toBool(row.colByName('Tarefas'), padrao.tarefas),
+      notificacoes: toBool(row.colByName('Notificacoes'), padrao.notificacoes),
+      funcionarios: toBool(
+        row.colByName('Funcionarios') ?? row.colByName('Gerenciar_Permissoes'),
+        padrao.funcionarios,
+      ),
+      criarTarefas: toBool(row.colByName('Criar_Tarefas'), padrao.criarTarefas),
+      editarTarefas: toBool(row.colByName('Editar_Tarefas'), padrao.editarTarefas),
+      excluirTarefas: toBool(row.colByName('Excluir_Tarefas'), padrao.excluirTarefas),
+      alterarStatus: toBool(row.colByName('Alterar_Status'), padrao.alterarStatus),
+      verDesempenho: toBool(row.colByName('Ver_Desempenho'), padrao.verDesempenho),
     );
-
-    final funcaoNome = row.colAt(14);
 
     return UsuarioModel(
       id: id,
@@ -53,8 +58,7 @@ class UsuarioService {
 
   Future<UsuarioModel> cadastrar(UsuarioModel usuario) async {
     final conn = await Database.getConnection();
-
-    final senhaCriptografada = _gerarHashSenha(usuario.senha!);
+    final senhaCriptografada = gerarHashSenha(usuario.senha ?? '1234');
 
     const sqlUsuario = '''
       INSERT INTO usuarios (
@@ -80,9 +84,14 @@ class UsuarioService {
     if (novoId > 0) {
       const sqlPerm = '''
         INSERT INTO permissoes_usuario (
-          Usuario_Id, Criar_Tarefas, Editar_Tarefas, Excluir_Tarefas, Alterar_Status, Ver_Desempenho, Gerenciar_Permissoes
-        ) VALUES (:uid, :criar, :editar, :excluir, :status, :desempenho, :gerenciar)
+          Usuario_Id, Clientes, Tarefas, Notificacoes, Funcionarios,
+          Criar_Tarefas, Editar_Tarefas, Excluir_Tarefas, Alterar_Status, Ver_Desempenho, Gerenciar_Permissoes
+        ) VALUES (:uid, :clientes, :tarefas, :notificacoes, :funcionarios, :criar, :editar, :excluir, :status, :desempenho, :gerenciar)
         ON DUPLICATE KEY UPDATE
+          Clientes = VALUES(Clientes),
+          Tarefas = VALUES(Tarefas),
+          Notificacoes = VALUES(Notificacoes),
+          Funcionarios = VALUES(Funcionarios),
           Criar_Tarefas = VALUES(Criar_Tarefas),
           Editar_Tarefas = VALUES(Editar_Tarefas),
           Excluir_Tarefas = VALUES(Excluir_Tarefas),
@@ -90,14 +99,19 @@ class UsuarioService {
           Ver_Desempenho = VALUES(Ver_Desempenho),
           Gerenciar_Permissoes = VALUES(Gerenciar_Permissoes);
       ''';
+
       await conn.execute(sqlPerm, {
         'uid': novoId,
+        'clientes': p.clientes ? 1 : 0,
+        'tarefas': p.tarefas ? 1 : 0,
+        'notificacoes': p.notificacoes ? 1 : 0,
+        'funcionarios': p.funcionarios ? 1 : 0,
         'criar': p.criarTarefas ? 1 : 0,
         'editar': p.editarTarefas ? 1 : 0,
         'excluir': p.excluirTarefas ? 1 : 0,
         'status': p.alterarStatus ? 1 : 0,
         'desempenho': p.verDesempenho ? 1 : 0,
-        'gerenciar': p.gerenciarPermissoes ? 1 : 0,
+        'gerenciar': p.funcionarios ? 1 : 0,
       });
     }
 
@@ -117,13 +131,14 @@ class UsuarioService {
 
   Future<UsuarioModel?> autenticar(String emailOuLogin, String senha) async {
     final conn = await Database.getConnection();
-    final senhaCriptografada = _gerarHashSenha(senha);
+    final senhaCriptografada = gerarHashSenha(senha);
     final loginClean = emailOuLogin.trim().toLowerCase();
 
     const sql = '''
       SELECT u.Id, u.Nome, u.Tipo, u.Setor_Id, u.E_mail, u.Telefone, u.Codigo_Autenticacao_Id, u.Codigo_Utilizado,
-             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes,
-             u.Funcao_Nome
+             u.Funcao_Nome,
+             p.Clientes, p.Tarefas, p.Notificacoes, p.Funcionarios,
+             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes
       FROM usuarios u
       LEFT JOIN permissoes_usuario p ON p.Usuario_Id = u.Id
       WHERE (
@@ -145,7 +160,7 @@ class UsuarioService {
       return null;
     }
 
-    return _mapRowToUsuario(resultado.rows.first);
+    return mapRowToUsuario(resultado.rows.first);
   }
 
   Future<List<UsuarioModel>> listarTodos() async {
@@ -153,15 +168,16 @@ class UsuarioService {
 
     const sql = '''
       SELECT u.Id, u.Nome, u.Tipo, u.Setor_Id, u.E_mail, u.Telefone, u.Codigo_Autenticacao_Id, u.Codigo_Utilizado,
-             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes,
-             u.Funcao_Nome
+             u.Funcao_Nome,
+             p.Clientes, p.Tarefas, p.Notificacoes, p.Funcionarios,
+             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes
       FROM usuarios u
       LEFT JOIN permissoes_usuario p ON p.Usuario_Id = u.Id
       ORDER BY u.Id ASC;
     ''';
 
     final resultado = await conn.execute(sql);
-    return resultado.rows.map(_mapRowToUsuario).toList();
+    return resultado.rows.map(mapRowToUsuario).toList();
   }
 
   Future<UsuarioModel?> buscarPorId(int id) async {
@@ -169,8 +185,9 @@ class UsuarioService {
 
     const sql = '''
       SELECT u.Id, u.Nome, u.Tipo, u.Setor_Id, u.E_mail, u.Telefone, u.Codigo_Autenticacao_Id, u.Codigo_Utilizado,
-             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes,
-             u.Funcao_Nome
+             u.Funcao_Nome,
+             p.Clientes, p.Tarefas, p.Notificacoes, p.Funcionarios,
+             p.Criar_Tarefas, p.Editar_Tarefas, p.Excluir_Tarefas, p.Alterar_Status, p.Ver_Desempenho, p.Gerenciar_Permissoes
       FROM usuarios u
       LEFT JOIN permissoes_usuario p ON p.Usuario_Id = u.Id
       WHERE u.Id = :id
@@ -179,7 +196,7 @@ class UsuarioService {
 
     final resultado = await conn.execute(sql, {'id': id});
     if (resultado.rows.isEmpty) return null;
-    return _mapRowToUsuario(resultado.rows.first);
+    return mapRowToUsuario(resultado.rows.first);
   }
 
   Future<UsuarioModel?> atualizarPermissoes(
@@ -199,9 +216,14 @@ class UsuarioService {
 
     const sqlPerm = '''
       INSERT INTO permissoes_usuario (
-        Usuario_Id, Criar_Tarefas, Editar_Tarefas, Excluir_Tarefas, Alterar_Status, Ver_Desempenho, Gerenciar_Permissoes
-      ) VALUES (:uid, :criar, :editar, :excluir, :status, :desempenho, :gerenciar)
+        Usuario_Id, Clientes, Tarefas, Notificacoes, Funcionarios,
+        Criar_Tarefas, Editar_Tarefas, Excluir_Tarefas, Alterar_Status, Ver_Desempenho, Gerenciar_Permissoes
+      ) VALUES (:uid, :clientes, :tarefas, :notificacoes, :funcionarios, :criar, :editar, :excluir, :status, :desempenho, :gerenciar)
       ON DUPLICATE KEY UPDATE
+        Clientes = VALUES(Clientes),
+        Tarefas = VALUES(Tarefas),
+        Notificacoes = VALUES(Notificacoes),
+        Funcionarios = VALUES(Funcionarios),
         Criar_Tarefas = VALUES(Criar_Tarefas),
         Editar_Tarefas = VALUES(Editar_Tarefas),
         Excluir_Tarefas = VALUES(Excluir_Tarefas),
@@ -212,12 +234,16 @@ class UsuarioService {
 
     await conn.execute(sqlPerm, {
       'uid': usuarioId,
+      'clientes': permissoes.clientes ? 1 : 0,
+      'tarefas': permissoes.tarefas ? 1 : 0,
+      'notificacoes': permissoes.notificacoes ? 1 : 0,
+      'funcionarios': permissoes.funcionarios ? 1 : 0,
       'criar': permissoes.criarTarefas ? 1 : 0,
       'editar': permissoes.editarTarefas ? 1 : 0,
       'excluir': permissoes.excluirTarefas ? 1 : 0,
       'status': permissoes.alterarStatus ? 1 : 0,
       'desempenho': permissoes.verDesempenho ? 1 : 0,
-      'gerenciar': permissoes.gerenciarPermissoes ? 1 : 0,
+      'gerenciar': permissoes.funcionarios ? 1 : 0,
     });
 
     return buscarPorId(usuarioId);

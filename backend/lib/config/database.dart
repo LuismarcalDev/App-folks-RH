@@ -18,29 +18,23 @@ class Database {
     final user = env['DB_USER'] ?? 'root';
     final password = env['DB_PASSWORD'] ?? '';
 
-    try {
-      final conn = await MySQLConnection.createConnection(
-        host: host,
-        port: port,
-        userName: user,
-        password: password,
-        databaseName: db,
-        secure: false,
-      );
-      await conn.connect();
-      _connection = conn;
-      print('✅ [MySQL] Conectado com sucesso ao banco de dados "$db"!');
+    final conn = await MySQLConnection.createConnection(
+      host: host,
+      port: port,
+      userName: user,
+      password: password,
+      databaseName: db,
+      secure: false,
+    );
+    await conn.connect();
+    _connection = conn;
 
-      if (!_schemaChecked) {
-        await _ensureSchema(conn);
-        _schemaChecked = true;
-      }
-
-      return _connection!;
-    } catch (e) {
-      print('❌ [MySQL] Erro ao conectar ao MySQL: $e');
-      rethrow;
+    if (!_schemaChecked) {
+      await _ensureSchema(conn);
+      _schemaChecked = true;
     }
+
+    return _connection!;
   }
 
   static Future<void> _ensureSchema(MySQLConnection conn) async {
@@ -55,6 +49,21 @@ class Database {
           Ver_Desempenho TINYINT(1) NOT NULL DEFAULT 0,
           Gerenciar_Permissoes TINYINT(1) NOT NULL DEFAULT 0,
           CONSTRAINT fk_permissoes_usuario FOREIGN KEY (Usuario_Id) REFERENCES usuarios (Id) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      ''');
+
+      await conn.execute('''
+        CREATE TABLE IF NOT EXISTS funcoes (
+          Id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          Nome VARCHAR(120) NOT NULL,
+          Tipo VARCHAR(30) NOT NULL DEFAULT 'assistente',
+          Departamento VARCHAR(120) NOT NULL DEFAULT 'Folks RH - Recrutamento & Seleção',
+          Criar_Tarefas TINYINT(1) NOT NULL DEFAULT 0,
+          Editar_Tarefas TINYINT(1) NOT NULL DEFAULT 1,
+          Excluir_Tarefas TINYINT(1) NOT NULL DEFAULT 1,
+          Alterar_Status TINYINT(1) NOT NULL DEFAULT 1,
+          Ver_Desempenho TINYINT(1) NOT NULL DEFAULT 0,
+          Gerenciar_Permissoes TINYINT(1) NOT NULL DEFAULT 0
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       ''');
     } catch (_) {}

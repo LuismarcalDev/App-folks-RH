@@ -1,0 +1,1 @@
+export 'permissao.dart';

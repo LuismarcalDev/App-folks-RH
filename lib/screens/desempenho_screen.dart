@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/task.dart';
 import '../models/user_profile.dart';
+import '../theme/app_colors.dart';
 
 class DesempenhoScreen extends StatelessWidget {
   final List<Task>? tasks;
@@ -13,7 +13,7 @@ class DesempenhoScreen extends StatelessWidget {
 
     if (!perms.verDesempenho) {
       return Scaffold(
-        backgroundColor: const Color(0xFF18181C),
+        backgroundColor: AppColors.bgMain,
         body: SafeArea(
           child: Center(
             child: Padding(
@@ -21,12 +21,9 @@ class DesempenhoScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF232329),
+                  color: AppColors.bgCard,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.14),
-                    width: 1.0,
-                  ),
+                  border: Border.all(color: AppColors.borderSubtle, width: 1.0),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -46,8 +43,7 @@ class DesempenhoScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       'Olá, ${UserSession.current.name} (${UserSession.current.tipo.toUpperCase()}).\n'
-                      'Sua conta atualmente não possui a permissão "Visualizar Desempenho e Métricas".\n\n'
-                      'Um Administrador (ex: luis) pode liberar seu acesso pelo Painel de Permissões salvo no MySQL.',
+                      'Sua conta não possui a permissão para visualizar métricas de desempenho.',
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
                     ),
@@ -67,13 +63,12 @@ class DesempenhoScreen extends StatelessWidget {
     final concluidas = allTasks.where((t) => t.status == TaskStatus.concluido).length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF18181C),
+      backgroundColor: AppColors.bgMain,
       body: SafeArea(
         bottom: false,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
           children: [
-            // Header
             const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -90,32 +85,24 @@ class DesempenhoScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Summary stats cards
             Row(
               children: [
-                _buildStatCard('Total', total.toString(), const Color(0xFF1E2856)),
+                _buildStatCard('Total', total.toString(), AppColors.primaryNavy),
                 const SizedBox(width: 8),
                 _buildStatCard('Andamento', emAndamento.toString(), const Color(0xFF2A4365)),
                 const SizedBox(width: 8),
-                _buildStatCard('Pendentes', pendentes.toString(), const Color(0xFFB45309)),
+                _buildStatCard('Pendentes', pendentes.toString(), AppColors.warningAmber),
                 const SizedBox(width: 8),
-                _buildStatCard('Concluídas', concluidas.toString(), const Color(0xFF15803D)),
+                _buildStatCard('Concluídas', concluidas.toString(), AppColors.successGreen),
               ],
             ),
-
             const SizedBox(height: 20),
-
-            // Card: Distribuição de Tarefas (Donut representation)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF232329),
+                color: AppColors.bgCard,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.14),
-                  width: 1.0,
-                ),
+                border: Border.all(color: AppColors.borderSubtle, width: 1.0),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,7 +118,6 @@ class DesempenhoScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      // Donut circular progress graphic
                       SizedBox(
                         width: 90,
                         height: 90,
@@ -141,8 +127,8 @@ class DesempenhoScreen extends StatelessWidget {
                             CircularProgressIndicator(
                               value: total > 0 ? (concluidas / total) : 0,
                               strokeWidth: 10,
-                              backgroundColor: const Color(0xFF1E2856),
-                              color: const Color(0xFF15803D),
+                              backgroundColor: AppColors.primaryNavy,
+                              color: AppColors.successGreen,
                             ),
                             Text(
                               total > 0 ? '${((concluidas / total) * 100).toInt()}%' : '0%',
@@ -156,95 +142,19 @@ class DesempenhoScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 20),
-                      // Legend
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildLegendItem('Em Andamento', const Color(0xFF1E2856), emAndamento),
+                            _buildLegendItem('Em Andamento', AppColors.primaryNavy, emAndamento),
                             const SizedBox(height: 6),
-                            _buildLegendItem('Pendente', const Color(0xFFB45309), pendentes),
+                            _buildLegendItem('Pendente', AppColors.warningAmber, pendentes),
                             const SizedBox(height: 6),
-                            _buildLegendItem('Concluído', const Color(0xFF15803D), concluidas),
+                            _buildLegendItem('Concluído', AppColors.successGreen, concluidas),
                           ],
                         ),
                       ),
                     ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Card: Métricas e Competências (Radar placeholder)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF232329),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.14),
-                  width: 1.0,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Competências & Entregas',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Agosto 2026',
-                        style: TextStyle(color: Colors.white70, fontSize: 11),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.14),
-                          width: 1.0,
-                        ),
-                      ),
-                      child: Center(
-                        child: Container(
-                          width: 85,
-                          height: 85,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.22),
-                              width: 1.0,
-                            ),
-                            color: const Color(0xFF1E2856).withValues(alpha: 0.3),
-                          ),
-                          child: const Center(
-                            child: Icon(Icons.radar, color: Colors.white, size: 36),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Center(
-                    child: Text(
-                      'Eficiência da equipe em 94% este mês',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
                   ),
                 ],
               ),
@@ -262,10 +172,7 @@ class DesempenhoScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.18),
-            width: 1.0,
-          ),
+          border: Border.all(color: AppColors.borderMedium, width: 1.0),
         ),
         child: Column(
           children: [
@@ -310,7 +217,11 @@ class DesempenhoScreen extends StatelessWidget {
         ),
         Text(
           count.toString(),
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
         ),
       ],
     );
