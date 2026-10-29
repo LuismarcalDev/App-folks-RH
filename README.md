@@ -49,9 +49,33 @@ Depois entre na pasta do projeto:
 cd App-folks-RH
 ```
 
+## 2. Selecionar a branch
+
+Depois de entrar na pasta do projeto, troque para a branch que será utilizada:
+
+```bash
+git checkout nome-da-branch
+```
+
+Substitua `nome-da-branch` pelo nome da branch que você irá utilizar.
+
+Exemplo:
+
+```bash
+git checkout develop
+```
+
+Para verificar em qual branch você está:
+
+```bash
+git branch
+```
+
+A branch atual será identificada com `*`.
+
 ---
 
-# 2. Configurar o banco de dados
+# 3. Configurar o banco de dados
 
 Abra o MySQL utilizando o MySQL Workbench ou outro cliente MySQL.
 
@@ -75,7 +99,7 @@ folks
 
 ---
 
-# 3. Configurar o Backend
+# 4. Configurar o Backend
 
 Dentro do projeto existe a pasta:
 
@@ -120,7 +144,7 @@ DB_PASSWORD=
 
 ---
 
-# 4. Abrir o projeto no VS Code
+# 5. Abrir o projeto no VS Code
 
 Abra a pasta:
 
@@ -144,7 +168,7 @@ App-folks-RH/
 
 ---
 
-# 5. Instalar as dependências do Flutter
+# 6. Instalar as dependências do Flutter
 
 Abra o terminal na raiz do projeto:
 
@@ -162,9 +186,7 @@ Esse comando instala as dependências utilizadas pelo projeto.
 
 ---
 
-# 6. Iniciar o Backend
-
-Antes de executar o aplicativo, o backend precisa estar funcionando.
+# 7. Iniciar o Backend
 
 Abra um terminal dentro da pasta `backend`:
 
@@ -178,9 +200,7 @@ Instale as dependências:
 npm install
 ```
 
-Depois inicie o backend utilizando o comando definido no projeto.
-
-Caso o projeto utilize o script `start`:
+Depois inicie o backend:
 
 ```bash
 npm start
@@ -196,7 +216,7 @@ Não feche esse terminal enquanto estiver utilizando o aplicativo.
 
 ---
 
-# 7. Executar pelo Google Chrome
+# 8. Executar pelo Google Chrome
 
 Abra outro terminal na raiz do projeto:
 
@@ -210,13 +230,9 @@ Verifique se o Flutter reconheceu o Chrome:
 flutter devices
 ```
 
-Deverá aparecer algo semelhante a:
+O Chrome deverá aparecer na lista de dispositivos.
 
-```text
-Chrome • chrome • web-javascript • Google Chrome
-```
-
-Para executar o aplicativo no Chrome:
+Para executar o aplicativo:
 
 ```bash
 flutter run -d chrome
@@ -224,17 +240,9 @@ flutter run -d chrome
 
 O Flutter irá compilar o projeto e abrir o aplicativo automaticamente no Google Chrome.
 
-Também é possível utilizar:
-
-```bash
-flutter run
-```
-
-Nesse caso, o Flutter poderá solicitar ou utilizar um dispositivo disponível.
-
 ---
 
-# 8. Executar utilizando Android Studio
+# 9. Executar utilizando Android Studio
 
 Para utilizar um emulador Android:
 
@@ -242,7 +250,7 @@ Para utilizar um emulador Android:
 
 Abra o Android Studio e acesse o **Device Manager**.
 
-### 2. Crie ou inicie um dispositivo virtual
+### 2. Inicie um emulador
 
 Escolha um dispositivo Android e inicie o emulador.
 
@@ -276,13 +284,13 @@ flutter run -d emulator-5554
 
 ---
 
-# 9. Executar em um celular Android pelo cabo USB
+# 10. Executar em um celular Android pelo cabo USB
 
 Também é possível executar o aplicativo diretamente em um celular Android.
 
 ## 1. Ativar o modo desenvolvedor
 
-No celular:
+No celular, acesse:
 
 ```text
 Configurações
@@ -363,7 +371,7 @@ O Flutter irá compilar e instalar o aplicativo no celular.
 
 ---
 
-# 10. Comandos úteis
+# 11. Comandos úteis
 
 ### Verificar instalação do Flutter
 
@@ -411,42 +419,89 @@ flutter pub get
 
 # Ordem recomendada para executar o projeto
 
-Sempre que for iniciar o projeto do zero:
+Sempre que for iniciar o projeto:
 
-### Terminal 1 — Backend
+### 1. Clonar o projeto
 
 ```bash
-cd App-folks-RH/backend
-npm install
-npm start
+git clone https://github.com/LuismarcalDev/App-folks-RH.git
 ```
 
-### Terminal 2 — Flutter
+### 2. Entrar na pasta
 
 ```bash
 cd App-folks-RH
+```
+
+### 3. Selecionar a branch
+
+```bash
+git checkout nome-da-branch
+```
+
+### 4. Configurar o banco de dados
+
+Execute o SQL disponível na raiz do projeto no MySQL.
+
+### 5. Configurar o `.env`
+
+Crie:
+
+```text
+backend/.env
+```
+
+E configure:
+
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=folks
+DB_USER=root
+DB_PASSWORD=
+PORT=8080
+```
+
+### 6. Instalar as dependências
+
+Na raiz:
+
+```bash
 flutter pub get
 ```
 
-Depois escolha onde executar:
+No backend:
 
-### Chrome
+```bash
+cd backend
+npm install
+```
+
+### 7. Iniciar o backend
+
+```bash
+npm start
+```
+
+### 8. Executar o aplicativo
+
+Chrome:
 
 ```bash
 flutter run -d chrome
 ```
 
-### Android Studio / Emulador
+Android Studio:
 
 ```bash
 flutter run
 ```
 
-### Celular USB
+Celular USB:
 
 ```bash
 flutter devices
-flutter run -d ID_DO_CELULAR
+flutter run -d ID_DO_DISPOSITIVO
 ```
 
 O backend deve permanecer executando enquanto o aplicativo estiver sendo utilizado.
