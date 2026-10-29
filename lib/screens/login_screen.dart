@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/user_profile.dart';
 import '../routes/app_routes.dart';
+import '../services/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -49,25 +49,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    await Future.delayed(const Duration(milliseconds: 600));
+    final profile = await ApiService.login(user, pass);
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    final u = user.toLowerCase();
-    const validUsers = {
-      'adm',
-      'alessandra',
-      'alessandra@folksrh.com',
-      'alessandra@folksrh.com.br',
-      'igor',
-      'igor@folksrh.com',
-      'igor@folksrh.com.br',
-    };
-    final isValidUser = validUsers.contains(u);
-
-    if (isValidUser && pass == '1234') {
-      UserSession.login(u);
+    if (profile != null) {
       Navigator.of(context).pushReplacementNamed(AppRoute.dashboard.path);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,6 +64,13 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     }
+  }
+
+  void _fillQuickLogin(String login) {
+    setState(() {
+      _emailController.text = login;
+      _passwordController.text = '1234';
+    });
   }
 
   @override
@@ -130,7 +124,54 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Colors.grey[600],
                           ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
+
+                    // Atalhos rápidos para testar os 3 níveis de permissão
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.black12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Contas no MySQL (clique para preencher - senha: 1234):',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1B2A6B),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              ActionChip(
+                                avatar: const Icon(Icons.security, size: 15, color: Color(0xFF1B2A6B)),
+                                label: const Text('luis (Admin)', style: TextStyle(fontSize: 11.5)),
+                                onPressed: () => _fillQuickLogin('luis'),
+                              ),
+                              ActionChip(
+                                avatar: const Icon(Icons.manage_accounts, size: 15, color: Color(0xFF1B2A6B)),
+                                label: const Text('igor (Gestor)', style: TextStyle(fontSize: 11.5)),
+                                onPressed: () => _fillQuickLogin('igor'),
+                              ),
+                              ActionChip(
+                                avatar: const Icon(Icons.person_outline, size: 15, color: Color(0xFF1B2A6B)),
+                                label: const Text('alessandra (Assistente)', style: TextStyle(fontSize: 11.5)),
+                                onPressed: () => _fillQuickLogin('alessandra'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
 
                     // Campo de login
                     TextFormField(

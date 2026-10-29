@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
+import '../models/user_profile.dart';
 import 'custom_badges.dart';
 
 class CreateTaskModal extends StatefulWidget {
@@ -40,14 +41,14 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
             colorScheme: const ColorScheme.dark(
               primary: Color(0xFF1E2856),
               onPrimary: Colors.white,
-              surface: Color(0xFF383838),
+              surface: Color(0xFF1E1E24),
               onSurface: Colors.white,
             ),
-            dialogTheme: const DialogThemeData(
-              backgroundColor: Color(0xFF383838),
+            dialogTheme: DialogThemeData(
+              backgroundColor: const Color(0xFF1E1E24),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(16)),
-                side: BorderSide(color: Colors.white24),
+                borderRadius: const BorderRadius.all(Radius.circular(16)),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
               ),
             ),
           ),
@@ -63,9 +64,21 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
     }
   }
 
-
-
   void _submit() {
+    if (!UserSession.current.permissions.criarTarefas) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Acesso negado: apenas pessoas que possuem permissão podem criar tarefas.',
+          ),
+          backgroundColor: Colors.redAccent.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) return;
 
     final newTask = Task(
@@ -91,9 +104,14 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF383838),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E24),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border(
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
+          left: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
+          right: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
+        ),
       ),
       padding: EdgeInsets.only(
         left: 20,
@@ -129,7 +147,7 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
                   ),
                 ],
               ),
-              const Divider(color: Colors.white24, height: 20),
+              Divider(color: Colors.white.withValues(alpha: 0.12), height: 20),
 
               // Title Field
               const Text(
@@ -154,19 +172,19 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
                   hintText: 'ex: ENTREVISTA - PLENO',
                   hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
                   filled: true,
-                  fillColor: const Color(0xFF454545),
+                  fillColor: const Color(0xFF27272F),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white70, width: 1.0),
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white54, width: 1.0),
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white, width: 1.2),
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.35), width: 1.2),
                   ),
                 ),
               ),
@@ -191,19 +209,19 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
                   hintText: 'Descreva os detalhes da tarefa ou vaga...',
                   hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
                   filled: true,
-                  fillColor: const Color(0xFF454545),
+                  fillColor: const Color(0xFF27272F),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white70, width: 1.0),
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white54, width: 1.0),
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.white, width: 1.2),
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.35), width: 1.2),
                   ),
                 ),
               ),
@@ -234,11 +252,11 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
-                            color: isSelected ? color.withValues(alpha: 0.25) : const Color(0xFF454545),
+                            color: isSelected ? color.withValues(alpha: 0.25) : const Color(0xFF27272F),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: isSelected ? color : Colors.white24,
-                              width: isSelected ? 1.5 : 1.0,
+                              color: isSelected ? color : Colors.white.withValues(alpha: 0.12),
+                              width: isSelected ? 1.4 : 1.0,
                             ),
                           ),
                           child: Row(
@@ -290,9 +308,12 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF454545),
+                              color: const Color(0xFF27272F),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.white54, width: 1.0),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.14),
+                                width: 1.0,
+                              ),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -329,15 +350,18 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF454545),
+                            color: const Color(0xFF27272F),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.white54, width: 1.0),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.14),
+                              width: 1.0,
+                            ),
                           ),
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<ManagerOption>(
                               value: _selectedManager,
                               isExpanded: true,
-                              dropdownColor: const Color(0xFF454545),
+                              dropdownColor: const Color(0xFF27272F),
                               style: const TextStyle(color: Colors.white, fontSize: 12),
                               icon: const Icon(Icons.arrow_drop_down, color: Colors.white70),
                               items: availableManagers.map((mgr) {
@@ -388,10 +412,12 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF1E2856) : const Color(0xFF454545),
+                            color: isSelected ? const Color(0xFF1E2856) : const Color(0xFF27272F),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: isSelected ? Colors.white : Colors.white24,
+                              color: isSelected
+                                  ? Colors.white.withValues(alpha: 0.35)
+                                  : Colors.white.withValues(alpha: 0.12),
                               width: isSelected ? 1.2 : 1.0,
                             ),
                           ),
@@ -422,7 +448,7 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
-                    side: const BorderSide(color: Colors.white, width: 1.2),
+                    side: BorderSide(color: Colors.white.withValues(alpha: 0.22), width: 1.0),
                   ),
                 ),
                 child: const Text(

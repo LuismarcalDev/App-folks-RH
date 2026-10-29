@@ -16,7 +16,7 @@ class ProfileAvatar extends StatelessWidget {
     this.icon,
     this.initials,
     this.backgroundColor = const Color(0xFF1B2A6B),
-    this.borderColor = Colors.white,
+    this.borderColor = const Color(0x33FFFFFF),
     this.foregroundColor = Colors.white,
     this.borderRadius,
   });
@@ -30,7 +30,7 @@ class ProfileAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: borderColor, width: 1.2),
+        border: Border.all(color: borderColor, width: 1.0),
       ),
       alignment: Alignment.center,
       child: initials != null && initials!.isNotEmpty

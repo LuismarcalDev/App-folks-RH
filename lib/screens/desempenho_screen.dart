@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
+import '../models/user_profile.dart';
 
 class DesempenhoScreen extends StatelessWidget {
   final List<Task>? tasks;
@@ -8,14 +9,65 @@ class DesempenhoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final allTasks = tasks ?? mockTasks;
+    final perms = UserSession.current.permissions;
+
+    if (!perms.verDesempenho) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF18181C),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF232329),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.14),
+                    width: 1.0,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.lock_person_outlined, color: Colors.amberAccent, size: 52),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'ACESSO RESTRITO AOS INDICADORES',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Olá, ${UserSession.current.name} (${UserSession.current.tipo.toUpperCase()}).\n'
+                      'Sua conta atualmente não possui a permissão "Visualizar Desempenho e Métricas".\n\n'
+                      'Um Administrador (ex: luis) pode liberar seu acesso pelo Painel de Permissões salvo no MySQL.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final allTasks = tasks ?? TaskSession.tasks;
     final total = allTasks.length;
     final emAndamento = allTasks.where((t) => t.status == TaskStatus.emAndamento).length;
     final pendentes = allTasks.where((t) => t.status == TaskStatus.pendente).length;
     final concluidas = allTasks.where((t) => t.status == TaskStatus.concluido).length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF404040),
+      backgroundColor: const Color(0xFF18181C),
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -58,9 +110,12 @@ class DesempenhoScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF454545),
+                color: const Color(0xFF232329),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white, width: 1.2),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  width: 1.0,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,9 +181,12 @@ class DesempenhoScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF454545),
+                color: const Color(0xFF232329),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white, width: 1.2),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  width: 1.0,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,7 +215,10 @@ class DesempenhoScreen extends StatelessWidget {
                       height: 140,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white24, width: 1.0),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.14),
+                          width: 1.0,
+                        ),
                       ),
                       child: Center(
                         child: Container(
@@ -165,7 +226,10 @@ class DesempenhoScreen extends StatelessWidget {
                           height: 85,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white38, width: 1.0),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.22),
+                              width: 1.0,
+                            ),
                             color: const Color(0xFF1E2856).withValues(alpha: 0.3),
                           ),
                           child: const Center(
@@ -198,7 +262,10 @@ class DesempenhoScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white54, width: 1.0),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.18),
+            width: 1.0,
+          ),
         ),
         child: Column(
           children: [

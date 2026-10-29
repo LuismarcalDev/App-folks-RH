@@ -8,6 +8,7 @@ class TaskCard extends StatefulWidget {
   final VoidCallback? onStatusChanged;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const TaskCard({
     super.key,
@@ -16,6 +17,7 @@ class TaskCard extends StatefulWidget {
     this.onStatusChanged,
     this.onTap,
     this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -25,14 +27,57 @@ class TaskCard extends StatefulWidget {
 class _TaskCardState extends State<TaskCard> {
   bool _isExpanded = false;
 
-
+  void _confirmDelete() {
+    if (widget.onDelete == null) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
+        ),
+        title: const Text(
+          'Excluir Tarefa',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Tem certeza que deseja excluir a tarefa "${widget.task.title}"?',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('CANCELAR', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              widget.onDelete?.call();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent.shade700,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'EXCLUIR',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showStatusPicker() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF383838),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      backgroundColor: const Color(0xFF1E1E24),
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
       ),
       builder: (ctx) {
         return Padding(
@@ -45,7 +90,7 @@ class _TaskCardState extends State<TaskCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'ALTERAR STATUS',
+                    'ALTERAR STATUS DA TAREFA',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 15,
@@ -80,8 +125,10 @@ class _TaskCardState extends State<TaskCard> {
                         color: color,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isCurrent ? Colors.white : Colors.white38,
-                          width: isCurrent ? 2.0 : 1.0,
+                          color: isCurrent
+                              ? Colors.white.withValues(alpha: 0.45)
+                              : Colors.white.withValues(alpha: 0.14),
+                          width: isCurrent ? 1.5 : 1.0,
                         ),
                       ),
                       child: Row(
@@ -119,14 +166,14 @@ class _TaskCardState extends State<TaskCard> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF454545),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white, width: 1.2),
+        color: const Color(0xFF232329),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           onTap: () {
             setState(() {
               _isExpanded = !_isExpanded;
@@ -159,7 +206,7 @@ class _TaskCardState extends State<TaskCard> {
                         Text(
                           task.timeAgo,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.85),
+                            color: Colors.white.withValues(alpha: 0.75),
                             fontSize: 12,
                           ),
                         ),
@@ -169,7 +216,7 @@ class _TaskCardState extends State<TaskCard> {
                           duration: const Duration(milliseconds: 200),
                           child: const Icon(
                             Icons.keyboard_arrow_down,
-                            color: Colors.white,
+                            color: Colors.white70,
                             size: 20,
                           ),
                         ),
@@ -184,7 +231,7 @@ class _TaskCardState extends State<TaskCard> {
                 const Text(
                   'Descrição',
                   style: TextStyle(
-                    color: Color(0xFFBDBDBD),
+                    color: Color(0xFF9E9EA7),
                     fontSize: 10.5,
                     fontWeight: FontWeight.w400,
                   ),
@@ -202,110 +249,165 @@ class _TaskCardState extends State<TaskCard> {
 
                 const SizedBox(height: 6),
 
-                // Prioridade
-                const Text(
-                  'Prioridade',
-                  style: TextStyle(
-                    color: Color(0xFFBDBDBD),
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 1),
+                // Prioridade e Entrega lado a lado
                 Row(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      task.priority.label,
-                      style: TextStyle(
-                        color: priorityColor,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Prioridade',
+                          style: TextStyle(
+                            color: Color(0xFF9E9EA7),
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              task.priority.label,
+                              style: TextStyle(
+                                color: priorityColor,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            DoubleChevronUp(color: priorityColor, size: 14),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    DoubleChevronUp(color: priorityColor, size: 14),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          'Entrega',
+                          style: TextStyle(
+                            color: Color(0xFF9E9EA7),
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          task.dueDate,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
-                ),
-
-                const SizedBox(height: 6),
-
-                // Entrega
-                const Text(
-                  'Entrega',
-                  style: TextStyle(
-                    color: Color(0xFFBDBDBD),
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  task.dueDate,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w400,
-                  ),
                 ),
 
                 if (_isExpanded) ...[
                   const SizedBox(height: 8),
-                  const Divider(color: Colors.white24, height: 1),
+                  Divider(color: Colors.white.withValues(alpha: 0.10), height: 1),
                   const SizedBox(height: 8),
                   Text(
                     'Informações adicionais da tarefa #${task.id}: Todas as etapas de validação e entrevistas técnicas estão configuradas no painel da Folks RH.',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: Colors.white.withValues(alpha: 0.85),
                       fontSize: 11.5,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
-                  if (widget.onEdit != null) ...[
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: InkWell(
-                        onTap: widget.onEdit,
-                        borderRadius: BorderRadius.circular(6),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E2856),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1.0,
-                            ),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.edit_outlined, color: Colors.white, size: 14),
-                              SizedBox(width: 5),
-                              Text(
-                                'Editar Tarefa',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
 
                 const SizedBox(height: 10),
+                Divider(color: Colors.white.withValues(alpha: 0.10), height: 1),
+                const SizedBox(height: 8),
 
-                // Bottom row: Manager info + Status button
+                // Action Row: Editar & Excluir buttons always accessible
+                if (widget.onEdit != null || widget.onDelete != null) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (widget.onEdit != null)
+                        InkWell(
+                          onTap: widget.onEdit,
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E2856),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.18),
+                                width: 1.0,
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.edit_outlined, color: Colors.white, size: 13),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Editar',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (widget.onEdit != null && widget.onDelete != null)
+                        const SizedBox(width: 8),
+                      if (widget.onDelete != null)
+                        InkWell(
+                          onTap: _confirmDelete,
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent.shade700,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.18),
+                                width: 1.0,
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.delete_outline, color: Colors.white, size: 13),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Excluir',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
+
+                // Bottom row: Manager info + Status button (Alterar Status)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -322,9 +424,9 @@ class _TaskCardState extends State<TaskCard> {
                             ),
                             decoration: BoxDecoration(
                               color: const Color(0xFF1E2856),
-                              borderRadius: BorderRadius.circular(3),
+                              borderRadius: BorderRadius.circular(4),
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.6),
+                                color: Colors.white.withValues(alpha: 0.18),
                                 width: 0.8,
                               ),
                             ),
@@ -357,7 +459,7 @@ class _TaskCardState extends State<TaskCard> {
 
                     const SizedBox(width: 8),
 
-                    // Status Button
+                    // Status Button (Alterar)
                     InkWell(
                       onTap: () {
                         if (widget.onStatusSelected != null) {
@@ -369,25 +471,36 @@ class _TaskCardState extends State<TaskCard> {
                       borderRadius: BorderRadius.circular(6),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
+                          horizontal: 14,
                           vertical: 7,
                         ),
                         decoration: BoxDecoration(
                           color: statusColor,
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: Colors.white,
-                            width: 1.1,
+                            color: Colors.white.withValues(alpha: 0.22),
+                            width: 1.0,
                           ),
                         ),
-                        child: Text(
-                          task.status.label,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.4,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              task.status.label,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.sync_alt,
+                              color: Colors.white,
+                              size: 13,
+                            ),
+                          ],
                         ),
                       ),
                     ),

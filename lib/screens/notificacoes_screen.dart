@@ -53,7 +53,7 @@ class NotificacoesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF404040),
+      backgroundColor: const Color(0xFF18181C),
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -87,11 +87,13 @@ class NotificacoesScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF454545),
+        color: const Color(0xFF232329),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: item.isUnread ? Colors.white : Colors.white24,
-          width: item.isUnread ? 1.2 : 1.0,
+          color: item.isUnread
+              ? Colors.white.withValues(alpha: 0.24)
+              : Colors.white.withValues(alpha: 0.10),
+          width: 1.0,
         ),
       ),
       child: Row(
@@ -102,7 +104,10 @@ class NotificacoesScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF1E2856),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white38, width: 0.8),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.18),
+                width: 0.8,
+              ),
             ),
             child: Icon(item.icon, color: Colors.white, size: 20),
           ),

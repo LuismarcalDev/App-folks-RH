@@ -3,6 +3,7 @@ import '../models/user_profile.dart';
 import '../routes/app_routes.dart';
 import '../widgets/custom_badges.dart';
 import '../widgets/edit_profile_modal.dart';
+import '../widgets/permissions_management_modal.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
@@ -51,6 +52,21 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
+  void _openPermissionsModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => PermissionsManagementModal(
+        onPermissionsChanged: () {
+          setState(() {
+            _profile = UserSession.current;
+          });
+        },
+      ),
+    );
+  }
+
   void _showFolksModal({
     required String title,
     required Widget Function(BuildContext ctx, StateSetter? setModalState) contentBuilder,
@@ -63,13 +79,13 @@ class _PerfilScreenState extends State<PerfilScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) {
           return Container(
-            decoration: const BoxDecoration(
-              color: Color(0xFF383838),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E24),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               border: Border(
-                top: BorderSide(color: Colors.white, width: 1.4),
-                left: BorderSide(color: Colors.white, width: 1.4),
-                right: BorderSide(color: Colors.white, width: 1.4),
+                top: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
+                left: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
+                right: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
               ),
             ),
             padding: EdgeInsets.only(
@@ -89,7 +105,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     width: 44,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white30,
+                      color: Colors.white24,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -112,7 +128,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     ),
                   ],
                 ),
-                const Divider(color: Colors.white24, height: 16),
+                Divider(color: Colors.white.withValues(alpha: 0.12), height: 16),
                 contentBuilder(context, setModalState),
               ],
             ),
@@ -140,10 +156,18 @@ class _PerfilScreenState extends State<PerfilScreen> {
             prefixIcon: Icon(icon, color: Colors.white70, size: 20),
             suffixIcon: suffix,
             filled: true,
-            fillColor: const Color(0xFF2E2E2E),
+            fillColor: const Color(0xFF27272F),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Colors.white24),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
             ),
           );
         }
@@ -212,7 +236,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
-                      side: const BorderSide(color: Colors.white, width: 1.2),
+                      side: BorderSide(color: Colors.white.withValues(alpha: 0.22), width: 1.0),
                     ),
                   ),
                   child: const Text(
@@ -260,7 +284,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
-                  side: const BorderSide(color: Colors.white, width: 1.2),
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.22), width: 1.0),
                 ),
               ),
               child: const Text('CONCLUÍDO', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -293,9 +317,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF2E2E2E),
+                color: const Color(0xFF27272F),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.white24),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
               ),
               child: const Column(
                 children: [
@@ -325,7 +349,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
-                  side: const BorderSide(color: Colors.white, width: 1.2),
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.22), width: 1.0),
                 ),
               ),
               child: const Text('FECHAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -340,10 +364,10 @@ class _PerfilScreenState extends State<PerfilScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF383838),
+        backgroundColor: const Color(0xFF1E1E24),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Colors.white24, width: 1.2),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
         ),
         title: const Text('Sair da Conta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: const Text(
@@ -395,9 +419,10 @@ class _PerfilScreenState extends State<PerfilScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF404040),
+      backgroundColor: const Color(0xFF18181C),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF404040),
+        backgroundColor: const Color(0xFF18181C),
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -429,12 +454,15 @@ class _PerfilScreenState extends State<PerfilScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF454545),
+                color: const Color(0xFF232329),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white, width: 1.2),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  width: 1.0,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25),
+                    color: Colors.black.withValues(alpha: 0.35),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -457,7 +485,10 @@ class _PerfilScreenState extends State<PerfilScreen> {
                             decoration: BoxDecoration(
                               color: const Color(0xFF1E2856),
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 1.2),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.25),
+                                width: 1.0,
+                              ),
                             ),
                             child: const Icon(Icons.edit, color: Colors.white, size: 12),
                           ),
@@ -500,7 +531,10 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         decoration: BoxDecoration(
                           color: const Color(0xFF1E2856),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white54, width: 0.8),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.20),
+                            width: 0.8,
+                          ),
                         ),
                         child: const Text(
                           'CONTA ATIVA',
@@ -519,9 +553,12 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white10,
+                            color: Colors.white.withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white30, width: 0.8),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.14),
+                              width: 0.8,
+                            ),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
@@ -552,9 +589,12 @@ class _PerfilScreenState extends State<PerfilScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF454545),
+                color: const Color(0xFF232329),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white24, width: 1.0),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  width: 1.0,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -574,26 +614,92 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     label: 'E-mail Corporativo',
                     value: _profile.email,
                   ),
-                  const Divider(color: Colors.white12, height: 16),
+                  Divider(color: Colors.white.withValues(alpha: 0.10), height: 16),
                   _buildContactItem(
                     icon: Icons.phone_outlined,
                     label: 'Telefone / WhatsApp',
                     value: _profile.phone,
                   ),
-                  const Divider(color: Colors.white12, height: 16),
+                  Divider(color: Colors.white.withValues(alpha: 0.10), height: 16),
                   _buildContactItem(
                     icon: Icons.business_outlined,
                     label: 'Departamento',
                     value: _profile.department,
                   ),
                   if (_profile.bio.isNotEmpty) ...[
-                    const Divider(color: Colors.white12, height: 16),
+                    Divider(color: Colors.white.withValues(alpha: 0.10), height: 16),
                     _buildContactItem(
                       icon: Icons.notes_outlined,
                       label: 'Sobre Mim',
                       value: _profile.bio,
                     ),
                   ],
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // --- PERMISSIONS CARD ---
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF232329),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: _profile.isAdmin
+                      ? Colors.amberAccent.withValues(alpha: 0.35)
+                      : Colors.white.withValues(alpha: 0.12),
+                  width: 1.0,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'NÍVEL E PERMISSÕES (BANCO MYSQL)',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _profile.isAdmin
+                              ? Colors.amber.shade800
+                              : const Color(0xFF1E2856),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          _profile.tipo.toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildPermChip('Criar Tarefas', _profile.permissions.criarTarefas),
+                      _buildPermChip('Editar Tarefas', _profile.permissions.editarTarefas),
+                      _buildPermChip('Excluir Tarefas', _profile.permissions.excluirTarefas),
+                      _buildPermChip('Alterar Status', _profile.permissions.alterarStatus),
+                      _buildPermChip('Ver Desempenho', _profile.permissions.verDesempenho),
+                      _buildPermChip('Admin / Permissões', _profile.permissions.gerenciarPermissoes),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -613,6 +719,14 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 ),
               ),
             ),
+
+            if (_profile.permissions.gerenciarPermissoes)
+              _buildSettingTile(
+                icon: Icons.admin_panel_settings,
+                title: 'Gerenciar Permissões e Usuários (Admin)',
+                subtitle: 'Alterar níveis e permissões de usuários no MySQL (folks)',
+                onTap: _openPermissionsModal,
+              ),
 
             _buildSettingTile(
               icon: Icons.person_outline,
@@ -659,7 +773,10 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
-                  side: const BorderSide(color: Colors.white54, width: 1.0),
+                  side: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.20),
+                    width: 1.0,
+                  ),
                 ),
                 elevation: 2,
               ),
@@ -713,9 +830,12 @@ class _PerfilScreenState extends State<PerfilScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF454545),
+        color: const Color(0xFF232329),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white24, width: 1.0),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+          width: 1.0,
+        ),
       ),
       child: ListTile(
         leading: Container(
@@ -723,7 +843,10 @@ class _PerfilScreenState extends State<PerfilScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFF1E2856),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white30, width: 0.8),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.18),
+              width: 0.8,
+            ),
           ),
           child: Icon(icon, color: Colors.white, size: 20),
         ),
@@ -741,6 +864,41 @@ class _PerfilScreenState extends State<PerfilScreen> {
         ),
         trailing: const Icon(Icons.chevron_right, color: Colors.white54, size: 20),
         onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildPermChip(String label, bool enabled) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: enabled ? const Color(0xFF15803D).withValues(alpha: 0.25) : Colors.black26,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: enabled
+              ? Colors.greenAccent.withValues(alpha: 0.45)
+              : Colors.white.withValues(alpha: 0.12),
+          width: 0.9,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            enabled ? Icons.check_circle : Icons.cancel_outlined,
+            color: enabled ? Colors.greenAccent : Colors.white38,
+            size: 13,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: enabled ? Colors.white : Colors.white54,
+              fontSize: 11,
+              fontWeight: enabled ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ],
       ),
     );
   }
