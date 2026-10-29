@@ -1,57 +1,33 @@
-import 'dart:convert';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../models/usuario_model.dart';
 import '../services/usuario_service.dart';
+import '../utils/api_response.dart';
 
 class UsuarioRoutes {
   final UsuarioService _service = UsuarioService();
 
-  static const _jsonHeaders = {'content-type': 'application/json; charset=utf-8'};
-
   Future<Response> login(Request request) async {
     try {
-      final bodyString = await request.readAsString();
-      if (bodyString.isEmpty) {
-        return Response.badRequest(
-          body: jsonEncode({'erro': 'O corpo da requisição não pode estar vazio.'}),
-          headers: _jsonHeaders,
-        );
-      }
-
-      final Map<String, dynamic> bodyJson = jsonDecode(bodyString);
+      final bodyJson = await ApiResponse.readJsonBody(request);
       final email = (bodyJson['email'] ?? bodyJson['login'])?.toString().trim();
       final senha = bodyJson['senha']?.toString().trim();
 
       if (email == null || email.isEmpty || senha == null || senha.isEmpty) {
-        return Response.badRequest(
-          body: jsonEncode({'erro': 'E-mail e senha são obrigatórios.'}),
-          headers: _jsonHeaders,
-        );
+        return ApiResponse.badRequest('E-mail e senha são obrigatórios.');
       }
 
       final usuario = await _service.autenticar(email, senha);
-
       if (usuario == null) {
-        return Response(
-          401,
-          body: jsonEncode({'erro': 'E-mail ou senha incorretos.'}),
-          headers: _jsonHeaders,
-        );
+        return ApiResponse.unauthorized('E-mail ou senha incorretos.');
       }
 
-      return Response.ok(
-        jsonEncode({
-          'mensagem': 'Login realizado com sucesso!',
-          'usuario': usuario.toJson(),
-        }),
-        headers: _jsonHeaders,
-      );
+      return ApiResponse.ok({
+        'mensagem': 'Login realizado com sucesso!',
+        'usuario': usuario.toJson(),
+      });
     } catch (e) {
-      return Response.internalServerError(
-        body: jsonEncode({'erro': 'Erro ao realizar login: $e'}),
-        headers: _jsonHeaders,
-      );
+      return ApiResponse.serverError('Erro ao realizar login: $e');
     }
   }
 
@@ -61,68 +37,43 @@ class UsuarioRoutes {
     router.get('/', (Request request) async {
       try {
         final usuarios = await _service.listarTodos();
-        return Response.ok(
-          jsonEncode({
-            'usuarios': usuarios.map((u) => u.toJson()).toList(),
-          }),
-          headers: _jsonHeaders,
-        );
+        return ApiResponse.ok({
+          'usuarios': usuarios.map((u) => u.toJson()).toList(),
+        });
       } catch (e) {
-        return Response.internalServerError(
-          body: jsonEncode({'erro': 'Erro ao listar usuários: $e'}),
-          headers: _jsonHeaders,
-        );
+        return ApiResponse.serverError('Erro ao listar usuários: $e');
       }
     });
 
     router.post('/', (Request request) async {
       try {
-        final bodyString = await request.readAsString();
-        if (bodyString.isEmpty) {
-          return Response.badRequest(
-            body: jsonEncode({'erro': 'O corpo da requisição não pode estar vazio.'}),
-            headers: _jsonHeaders,
-          );
+        final bodyJson = await ApiResponse.readJsonBody(request);
+        if (bodyJson.isEmpty) {
+          return ApiResponse.badRequest('O corpo da requisição não pode estar vazio.');
         }
 
-        final Map<String, dynamic> bodyJson = jsonDecode(bodyString);
         final usuarioModel = UsuarioModel.fromJson(bodyJson);
-
         final usuarioCadastrado = await _service.cadastrar(usuarioModel);
 
-        return Response(
-          201,
-          body: jsonEncode({
-            'mensagem': 'Funcionário cadastrado com sucesso!',
-            'usuario': usuarioCadastrado.toJson(),
-          }),
-          headers: _jsonHeaders,
-        );
+        return ApiResponse.created({
+          'mensagem': 'Funcionário cadastrado com sucesso!',
+          'usuario': usuarioCadastrado.toJson(),
+        });
       } on ArgumentError catch (e) {
-        return Response.badRequest(
-          body: jsonEncode({'erro': e.message}),
-          headers: _jsonHeaders,
-        );
+        return ApiResponse.badRequest(e.message.toString());
       } catch (e) {
-        return Response.internalServerError(
-          body: jsonEncode({'erro': 'Erro ao cadastrar funcionário: $e'}),
-          headers: _jsonHeaders,
-        );
+        return ApiResponse.serverError('Erro ao cadastrar funcionário: $e');
       }
     });
 
     router.put('/<id|[0-9]+>/permissoes', (Request request, String id) async {
       try {
         final usuarioId = int.parse(id);
-        final bodyString = await request.readAsString();
-        if (bodyString.isEmpty) {
-          return Response.badRequest(
-            body: jsonEncode({'erro': 'O corpo da requisição não pode estar vazio.'}),
-            headers: _jsonHeaders,
-          );
+        final bodyJson = await ApiResponse.readJsonBody(request);
+        if (bodyJson.isEmpty) {
+          return ApiResponse.badRequest('O corpo da requisição não pode estar vazio.');
         }
 
-        final Map<String, dynamic> bodyJson = jsonDecode(bodyString);
         final novoTipo = bodyJson['tipo']?.toString().toLowerCase().trim();
         final permMap = bodyJson['permissoes'] is Map<String, dynamic>
             ? bodyJson['permissoes'] as Map<String, dynamic>
@@ -140,28 +91,17 @@ class UsuarioRoutes {
         );
 
         if (atualizado == null) {
-          return Response.notFound(
-            jsonEncode({'erro': 'Usuário não encontrado.'}),
-            headers: _jsonHeaders,
-          );
+          return ApiResponse.notFound('Usuário não encontrado.');
         }
 
-        return Response.ok(
-          jsonEncode({
-            'mensagem': 'Permissões salvas no banco MySQL com sucesso!',
-            'usuario': atualizado.toJson(),
-          }),
-          headers: _jsonHeaders,
-        );
+        return ApiResponse.ok({
+          'mensagem': 'Permissões salvas no banco MySQL com sucesso!',
+          'usuario': atualizado.toJson(),
+        });
       } catch (e) {
-        return Response.internalServerError(
-          body: jsonEncode({'erro': 'Erro ao atualizar permissões: $e'}),
-          headers: _jsonHeaders,
-        );
+        return ApiResponse.serverError('Erro ao atualizar permissões: $e');
       }
     });
-
-    router.post('/login', login);
 
     return router;
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/task.dart';
 import '../models/user_profile.dart';
-import 'custom_badges.dart';
+import '../theme/app_colors.dart';
+import 'task_form_fields.dart';
 
 class CreateTaskModal extends StatefulWidget {
   final Function(Task newTask) onTaskCreated;
@@ -30,37 +30,9 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2035),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF1E2856),
-              onPrimary: Colors.white,
-              surface: Color(0xFF1E1E24),
-              onSurface: Colors.white,
-            ),
-            dialogTheme: DialogThemeData(
-              backgroundColor: const Color(0xFF1E1E24),
-              shape: RoundedRectangleBorder(
-                borderRadius: const BorderRadius.all(Radius.circular(16)),
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
+    final picked = await TaskFormFields.pickTaskDate(context, _selectedDate);
     if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
+      setState(() => _selectedDate = picked);
     }
   }
 
@@ -94,7 +66,6 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
       managerInitials: _selectedManager.initials,
       status: _selectedStatus,
       isViewed: true,
-      section: 'NA ÚLTIMA SEMANA',
     );
 
     widget.onTaskCreated(newTask);
@@ -104,15 +75,7 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E24),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
-          left: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
-          right: BorderSide(color: Colors.white.withValues(alpha: 0.16), width: 1.0),
-        ),
-      ),
+      decoration: AppColors.modalSheetDecoration(),
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
@@ -126,7 +89,6 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header with title and close button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -147,308 +109,29 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
                   ),
                 ],
               ),
-              Divider(color: Colors.white.withValues(alpha: 0.12), height: 20),
-
-              // Title Field
-              const Text(
-                'Título da Tarefa *',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
+              Divider(color: AppColors.borderSubtle, height: 20),
+              TaskFormFields(
+                titleController: _titleController,
+                descController: _descController,
+                selectedPriority: _selectedPriority,
+                onPriorityChanged: (p) => setState(() => _selectedPriority = p),
+                selectedDate: _selectedDate,
+                onPickDate: _pickDate,
+                managers: availableManagers,
+                selectedManager: _selectedManager,
+                onManagerChanged: (m) => setState(() => _selectedManager = m),
+                selectedStatus: _selectedStatus,
+                onStatusChanged: (s) => setState(() => _selectedStatus = s),
               ),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _titleController,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty) {
-                    return 'Informe o título da tarefa';
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                  hintText: 'ex: ENTREVISTA - PLENO',
-                  hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
-                  filled: true,
-                  fillColor: const Color(0xFF27272F),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.35), width: 1.2),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 14),
-
-              // Description Field
-              const Text(
-                'Descrição',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _descController,
-                maxLines: 3,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-                decoration: InputDecoration(
-                  hintText: 'Descreva os detalhes da tarefa ou vaga...',
-                  hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
-                  filled: true,
-                  fillColor: const Color(0xFF27272F),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.14), width: 1.0),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.35), width: 1.2),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 14),
-
-              // Priority Selector
-              const Text(
-                'Prioridade',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: TaskPriority.values.map((priority) {
-                  final isSelected = _selectedPriority == priority;
-                  final color = priority.color;
-
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: InkWell(
-                        onTap: () => setState(() => _selectedPriority = priority),
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isSelected ? color.withValues(alpha: 0.25) : const Color(0xFF27272F),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isSelected ? color : Colors.white.withValues(alpha: 0.12),
-                              width: isSelected ? 1.4 : 1.0,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                priority.label,
-                                style: TextStyle(
-                                  color: isSelected ? Colors.white : Colors.white70,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              if (priority == TaskPriority.alta) ...[
-                                const SizedBox(width: 4),
-                                DoubleChevronUp(color: isSelected ? color : Colors.white54, size: 12),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-
-              const SizedBox(height: 14),
-
-              // Row for Due Date & Manager
-              Row(
-                children: [
-                  // Data de Entrega
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Entrega',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        InkWell(
-                          onTap: _pickDate,
-                          borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF27272F),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.14),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  Task.formatDate(_selectedDate),
-                                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                                ),
-                                const Icon(Icons.calendar_month, color: Colors.white70, size: 18),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  // Gestor Responsável
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Gestor',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF27272F),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.14),
-                              width: 1.0,
-                            ),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<ManagerOption>(
-                              value: _selectedManager,
-                              isExpanded: true,
-                              dropdownColor: const Color(0xFF27272F),
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
-                              icon: const Icon(Icons.arrow_drop_down, color: Colors.white70),
-                              items: availableManagers.map((mgr) {
-                                return DropdownMenuItem<ManagerOption>(
-                                  value: mgr,
-                                  child: Text(
-                                    mgr.name,
-                                    style: const TextStyle(color: Colors.white, fontSize: 11),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                );
-                              }).toList(),
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setState(() => _selectedManager = val);
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 14),
-
-              // Status Inicial
-              const Text(
-                'Status Inicial',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: TaskStatus.values.map((status) {
-                  final isSelected = _selectedStatus == status;
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: InkWell(
-                        onTap: () => setState(() => _selectedStatus = status),
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF1E2856) : const Color(0xFF27272F),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isSelected
-                                  ? Colors.white.withValues(alpha: 0.35)
-                                  : Colors.white.withValues(alpha: 0.12),
-                              width: isSelected ? 1.2 : 1.0,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            status.label,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              fontSize: 10,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-
               const SizedBox(height: 22),
-
-              // Submit Button
               ElevatedButton(
                 onPressed: _submit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E2856),
+                  backgroundColor: AppColors.primaryNavy,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
-                    side: BorderSide(color: Colors.white.withValues(alpha: 0.22), width: 1.0),
+                    side: BorderSide(color: AppColors.borderStrong, width: 1.0),
                   ),
                 ),
                 child: const Text(

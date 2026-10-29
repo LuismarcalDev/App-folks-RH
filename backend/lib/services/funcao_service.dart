@@ -1,11 +1,8 @@
 import '../config/database.dart';
+import '../models/funcao_model.dart';
+import '../models/permissao_model.dart';
 
 class FuncaoService {
-  bool _toBool(String? val, bool fallback) {
-    if (val == null) return fallback;
-    return val == '1' || val.toLowerCase() == 'true';
-  }
-
   Future<List<Map<String, dynamic>>> listarTodas() async {
     final conn = await Database.getConnection();
     const sql = '''
@@ -14,22 +11,7 @@ class FuncaoService {
       ORDER BY Id ASC;
     ''';
     final res = await conn.execute(sql);
-    return res.rows.map((r) {
-      return {
-        'id': int.tryParse(r.colAt(0) ?? '') ?? 1,
-        'nome': r.colAt(1) ?? '',
-        'tipo': r.colAt(2) ?? 'assistente',
-        'departamento': r.colAt(3) ?? 'Folks RH - Recrutamento & Seleção',
-        'permissoes': {
-          'criar_tarefas': _toBool(r.colAt(4), false),
-          'editar_tarefas': _toBool(r.colAt(5), true),
-          'excluir_tarefas': _toBool(r.colAt(6), true),
-          'alterar_status': _toBool(r.colAt(7), true),
-          'ver_desempenho': _toBool(r.colAt(8), false),
-          'gerenciar_permissoes': _toBool(r.colAt(9), false),
-        },
-      };
-    }).toList();
+    return res.rows.map((r) => FuncaoModel.fromRow(r).toJson()).toList();
   }
 
   Future<Map<String, dynamic>> criar(Map<String, dynamic> data) async {
@@ -37,23 +19,11 @@ class FuncaoService {
     final nome = (data['nome'] ?? '').toString().trim();
     final tipo = (data['tipo'] ?? 'assistente').toString().trim().toLowerCase();
     final departamento = (data['departamento'] ?? 'Folks RH - Recrutamento & Seleção').toString().trim();
-    final perms = data['permissoes'] is Map<String, dynamic>
+    final permMap = data['permissoes'] is Map<String, dynamic>
         ? data['permissoes'] as Map<String, dynamic>
         : <String, dynamic>{};
 
-    bool parseB(dynamic v, bool def) {
-      if (v == null) return def;
-      if (v is bool) return v;
-      if (v is int) return v != 0;
-      return v.toString().toLowerCase() == 'true' || v.toString() == '1';
-    }
-
-    final criar = parseB(perms['criar_tarefas'], tipo == 'admin' || tipo == 'gestor' || tipo == 'analista');
-    final editar = parseB(perms['editar_tarefas'], true);
-    final excluir = parseB(perms['excluir_tarefas'], true);
-    final status = parseB(perms['alterar_status'], true);
-    final desempenho = parseB(perms['ver_desempenho'], tipo == 'admin' || tipo == 'gestor' || tipo == 'analista');
-    final gerenciar = parseB(perms['gerenciar_permissoes'], tipo == 'admin');
+    final perms = PermissoesUsuario.fromJson(permMap, fallbackTipo: tipo);
 
     const sql = '''
       INSERT INTO funcoes (Nome, Tipo, Departamento, Criar_Tarefas, Editar_Tarefas, Excluir_Tarefas, Alterar_Status, Ver_Desempenho, Gerenciar_Permissoes)
@@ -64,30 +34,22 @@ class FuncaoService {
       'nome': nome,
       'tipo': tipo,
       'depto': departamento,
-      'criar': criar ? 1 : 0,
-      'editar': editar ? 1 : 0,
-      'excluir': excluir ? 1 : 0,
-      'status': status ? 1 : 0,
-      'desemp': desempenho ? 1 : 0,
-      'gerenc': gerenciar ? 1 : 0,
+      'criar': perms.criarTarefas ? 1 : 0,
+      'editar': perms.editarTarefas ? 1 : 0,
+      'excluir': perms.excluirTarefas ? 1 : 0,
+      'status': perms.alterarStatus ? 1 : 0,
+      'desemp': perms.verDesempenho ? 1 : 0,
+      'gerenc': perms.gerenciarPermissoes ? 1 : 0,
     });
 
-    final newId = res.lastInsertID.toInt();
-
-    return {
-      'id': newId,
-      'nome': nome,
-      'tipo': tipo,
-      'departamento': departamento,
-      'permissoes': {
-        'criar_tarefas': criar,
-        'editar_tarefas': editar,
-        'excluir_tarefas': excluir,
-        'alterar_status': status,
-        'ver_desempenho': desempenho,
-        'gerenciar_permissoes': gerenciar,
-      },
-    };
+    final created = FuncaoModel(
+      id: res.lastInsertID.toInt(),
+      nome: nome,
+      tipo: tipo,
+      departamento: departamento,
+      permissoes: perms,
+    );
+    return created.toJson();
   }
 
   Future<bool> excluir(int id) async {

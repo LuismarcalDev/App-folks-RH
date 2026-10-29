@@ -1,96 +1,16 @@
-class PermissoesUsuario {
-  final bool criarTarefas;
-  final bool editarTarefas;
-  final bool excluirTarefas;
-  final bool alterarStatus;
-  final bool verDesempenho;
-  final bool gerenciarPermissoes;
+import 'permissao_model.dart';
 
-  const PermissoesUsuario({
-    required this.criarTarefas,
-    required this.editarTarefas,
-    required this.excluirTarefas,
-    required this.alterarStatus,
-    required this.verDesempenho,
-    required this.gerenciarPermissoes,
-  });
-
-  factory PermissoesUsuario.padraoPorTipo(String tipo) {
-    switch (tipo.toLowerCase()) {
-      case 'admin':
-        return const PermissoesUsuario(
-          criarTarefas: true,
-          editarTarefas: true,
-          excluirTarefas: true,
-          alterarStatus: true,
-          verDesempenho: true,
-          gerenciarPermissoes: true,
-        );
-      case 'gestor':
-        return const PermissoesUsuario(
-          criarTarefas: true,
-          editarTarefas: true,
-          excluirTarefas: true,
-          alterarStatus: true,
-          verDesempenho: true,
-          gerenciarPermissoes: false,
-        );
-      case 'analista':
-        return const PermissoesUsuario(
-          criarTarefas: true,
-          editarTarefas: true,
-          excluirTarefas: true,
-          alterarStatus: true,
-          verDesempenho: true,
-          gerenciarPermissoes: false,
-        );
-      case 'assistente':
-      case 'auxiliar':
-      default:
-        return const PermissoesUsuario(
-          criarTarefas: false,
-          editarTarefas: true,
-          excluirTarefas: true,
-          alterarStatus: true,
-          verDesempenho: false,
-          gerenciarPermissoes: false,
-        );
-    }
-  }
-
-  factory PermissoesUsuario.fromJson(Map<String, dynamic> json, {String fallbackTipo = 'auxiliar'}) {
-    final padrao = PermissoesUsuario.padraoPorTipo(fallbackTipo);
-    bool parseBool(dynamic v, bool fallback) {
-      if (v == null) return fallback;
-      if (v is bool) return v;
-      if (v is int) return v != 0;
-      final s = v.toString().toLowerCase();
-      return s == 'true' || s == '1';
-    }
-
-    return PermissoesUsuario(
-      criarTarefas: parseBool(json['criar_tarefas'], padrao.criarTarefas),
-      editarTarefas: parseBool(json['editar_tarefas'], padrao.editarTarefas),
-      excluirTarefas: parseBool(json['excluir_tarefas'], padrao.excluirTarefas),
-      alterarStatus: parseBool(json['alterar_status'], padrao.alterarStatus),
-      verDesempenho: parseBool(json['ver_desempenho'], padrao.verDesempenho),
-      gerenciarPermissoes: parseBool(json['gerenciar_permissoes'], padrao.gerenciarPermissoes),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'criar_tarefas': criarTarefas,
-      'editar_tarefas': editarTarefas,
-      'excluir_tarefas': excluirTarefas,
-      'alterar_status': alterarStatus,
-      'ver_desempenho': verDesempenho,
-      'gerenciar_permissoes': gerenciarPermissoes,
-    };
-  }
-}
+export 'permissao_model.dart';
 
 class UsuarioModel {
+  static const List<String> tiposValidos = [
+    'admin',
+    'gestor',
+    'analista',
+    'assistente',
+    'auxiliar',
+  ];
+
   final int? id;
   final String nome;
   final String tipo;
@@ -118,7 +38,6 @@ class UsuarioModel {
   }) : permissoes = permissoes ?? PermissoesUsuario.padraoPorTipo(tipo);
 
   factory UsuarioModel.fromJson(Map<String, dynamic> json) {
-    final tiposValidos = ['admin', 'gestor', 'analista', 'assistente', 'auxiliar'];
     final tipoInformado = (json['tipo']?.toString().toLowerCase() ?? 'assistente').trim();
 
     if (json['nome'] == null || json['nome'].toString().trim().isEmpty) {

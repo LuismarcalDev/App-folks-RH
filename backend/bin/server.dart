@@ -1,31 +1,18 @@
 import 'dart:io';
+import 'package:dotenv/dotenv.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
-import 'package:dotenv/dotenv.dart';
 
-import '../lib/config/database.dart';
-import '../lib/routes/funcao_routes.dart';
-import '../lib/routes/tarefa_routes.dart';
-import '../lib/routes/usuario_routes.dart';
-
-Middleware _corsMiddleware() {
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
-  };
-
-  return (Handler innerHandler) {
-    return (Request request) async {
-      if (request.method == 'OPTIONS') {
-        return Response.ok('', headers: corsHeaders);
-      }
-      final response = await innerHandler(request);
-      return response.change(headers: corsHeaders);
-    };
-  };
-}
+import 'package:backend_folks_rh/config/cors_middleware.dart';
+import 'package:backend_folks_rh/config/database.dart';
+import 'package:backend_folks_rh/controllers/auth_controller.dart';
+import 'package:backend_folks_rh/routes/cliente_routes.dart';
+import 'package:backend_folks_rh/routes/funcao_routes.dart';
+import 'package:backend_folks_rh/routes/funcionario_routes.dart';
+import 'package:backend_folks_rh/routes/notificacao_routes.dart';
+import 'package:backend_folks_rh/routes/tarefa_routes.dart';
+import 'package:backend_folks_rh/utils/api_response.dart';
 
 void main() async {
   final env = DotEnv(includePlatformEnvironment: true)..load();
@@ -33,30 +20,43 @@ void main() async {
 
   try {
     await Database.getConnection();
-  } catch (e) {
-    print('⚠️ Não foi possível conectar ao MySQL na inicialização. Verifique o seu .env e o MySQL Workbench.');
+  } catch (_) {
+    print('⚠️ Não foi possível conectar ao MySQL na inicialização. Verifique o .env e o MySQL.');
   }
 
   final app = Router();
-  final usuarioRoutes = UsuarioRoutes();
+
+  final authController = AuthController();
+  final funcionarioRoutes = FuncionarioRoutes();
+  final clienteRoutes = ClienteRoutes();
   final tarefaRoutes = TarefaRoutes();
+  final notificacaoRoutes = NotificacaoRoutes();
   final funcaoRoutes = FuncaoRoutes();
 
-  app.mount('/usuarios', usuarioRoutes.router.call);
-  app.mount('/tarefas', tarefaRoutes.router.call);
-  app.mount('/funcoes', funcaoRoutes.router.call);
-  app.post('/login', usuarioRoutes.login);
+  // --- Rotas da API padronizadas ---
+  app.post('/api/login', authController.login);
+  app.post('/api/cadastro', authController.cadastro);
+  app.mount('/api/funcionarios', funcionarioRoutes.router.call);
+  app.mount('/api/clientes', clienteRoutes.router.call);
+  app.mount('/api/tarefas', tarefaRoutes.router.call);
+  app.mount('/api/notificacoes', notificacaoRoutes.router.call);
+  app.mount('/api/funcoes', funcaoRoutes.router.call);
 
-  app.get('/health', (Request req) {
-    return Response.ok(
-      '{"status": "online", "banco": "mysql"}',
-      headers: {'content-type': 'application/json'},
-    );
-  });
+  // --- Compatibilidade direta ---
+  app.post('/login', authController.login);
+  app.post('/cadastro', authController.cadastro);
+  app.mount('/funcionarios', funcionarioRoutes.router.call);
+  app.mount('/usuarios', funcionarioRoutes.router.call);
+  app.mount('/clientes', clienteRoutes.router.call);
+  app.mount('/tarefas', tarefaRoutes.router.call);
+  app.mount('/notificacoes', notificacaoRoutes.router.call);
+  app.mount('/funcoes', funcaoRoutes.router.call);
+
+  app.get('/health', (Request req) => ApiResponse.ok({'status': 'online', 'banco': 'mysql'}));
 
   final handler = Pipeline()
       .addMiddleware(logRequests())
-      .addMiddleware(_corsMiddleware())
+      .addMiddleware(corsMiddleware())
       .addHandler(app.call);
 
   final server = await serve(handler, InternetAddress.anyIPv4, port);

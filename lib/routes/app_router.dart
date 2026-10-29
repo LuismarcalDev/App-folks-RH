@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:projeto_01/screens/screens.dart';
+import '../models/user_profile.dart';
+import '../screens/screens.dart';
 import 'app_routes.dart';
 
 class AppRouter {
@@ -7,6 +8,18 @@ class AppRouter {
 
   Route<dynamic> generateRoute(RouteSettings settings) {
     final route = _routeFromPath(settings.name) ?? AppRoute.notFound;
+
+    // Redireciona para o login caso tente acessar rotas internas sem autenticação
+    final rotasPublicas = [
+      AppRoute.home,
+      AppRoute.welcome,
+      AppRoute.login,
+      AppRoute.cadastro,
+    ];
+
+    if (!rotasPublicas.contains(route) && !UserSession.isLoggedIn) {
+      return _pageRoute(const LoginScreen(), settings);
+    }
 
     switch (route) {
       case AppRoute.home:
@@ -17,14 +30,19 @@ class AppRouter {
         return _pageRoute(const LoginScreen(), settings);
       case AppRoute.cadastro:
         return _pageRoute(const CadastroScreen(), settings);
+      case AppRoute.inicio:
       case AppRoute.dashboard:
-        return _pageRoute(const DashboardScreen(), settings);
+        return _pageRoute(const InicioScreen(), settings);
+      case AppRoute.funcionarios:
+        return _pageRoute(const FuncionariosScreen(), settings);
+      case AppRoute.clientes:
+        return _pageRoute(const ClientesScreen(), settings);
       case AppRoute.tarefas:
-        return _pageRoute(const MainNavigationScreen(initialIndex: 1), settings);
+        return _pageRoute(const TarefasScreen(), settings);
       case AppRoute.desempenho:
-        return _pageRoute(const MainNavigationScreen(initialIndex: 2), settings);
+        return _pageRoute(const DesempenhoScreen(), settings);
       case AppRoute.notificacoes:
-        return _pageRoute(const MainNavigationScreen(initialIndex: 3), settings);
+        return _pageRoute(const NotificacaoScreen(), settings);
       case AppRoute.perfil:
         return _pageRoute(const PerfilScreen(), settings);
       case AppRoute.notFound:
@@ -57,7 +75,7 @@ class _NotFoundPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: Color(0xFF404040),
+      backgroundColor: Color(0xFF18181C),
       body: Center(
         child: Text(
           'Página não encontrada',
