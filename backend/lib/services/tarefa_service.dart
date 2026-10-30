@@ -155,6 +155,27 @@ class TarefaService {
     return true;
   }
 
+  Future<List<Map<String, dynamic>>> listarLogs(int tarefaId) async {
+    final conn = await Database.getConnection();
+    const sql = '''
+      SELECT Id, Tarefas_Id, Acao, Descricao, Data_Criacao
+      FROM log_tarefa
+      WHERE Tarefas_Id = :tid
+      ORDER BY Data_Criacao DESC, Id DESC;
+    ''';
+    final res = await conn.execute(sql, {'tid': tarefaId});
+    return res.rows.map((r) {
+      final row = r.assoc();
+      return {
+        'id': row['Id'] != null ? int.tryParse(row['Id']!) : null,
+        'tarefasId': row['Tarefas_Id'] != null ? int.tryParse(row['Tarefas_Id']!) : null,
+        'acao': row['Acao'],
+        'descricao': row['Descricao'],
+        'dataCriacao': row['Data_Criacao'],
+      };
+    }).toList();
+  }
+
   Future<void> _registrarLog(int tarefaId, String acao, String descricao) async {
     try {
       final conn = await Database.getConnection();

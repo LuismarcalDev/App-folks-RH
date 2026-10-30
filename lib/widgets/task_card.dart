@@ -9,6 +9,7 @@ class TaskCard extends StatelessWidget {
   final VoidCallback? onStatusChanged;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onTap;
 
   const TaskCard({
     super.key,
@@ -17,6 +18,7 @@ class TaskCard extends StatelessWidget {
     this.onStatusChanged,
     this.onEdit,
     this.onDelete,
+    this.onTap,
   });
 
   void _confirmDelete(BuildContext context) {
@@ -150,38 +152,53 @@ class TaskCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.borderSubtle, width: 1.0),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  task.title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.3,
-                  ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          task.timeAgo,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.75),
+                            fontSize: 12,
+                          ),
+                        ),
+                        if (onTap != null) ...[
+                          const SizedBox(width: 4),
+                          const Icon(Icons.chevron_right, size: 16, color: Colors.white54),
+                        ],
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              Text(
-                task.timeAgo,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.75),
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 6),
           const Text(
             'Descrição',
@@ -411,6 +428,9 @@ class TaskCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+          ),
+        ),
       ),
     );
   }

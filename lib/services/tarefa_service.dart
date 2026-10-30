@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../models/task_log.dart';
 import '../models/user_profile.dart';
 import 'api_service.dart';
 
@@ -139,5 +140,33 @@ class TarefaService {
 
     TaskSession.tasks.removeWhere((t) => t.id == task.id);
     return true;
+  }
+
+  static Future<List<TaskLog>> buscarLogs(String tarefaId) async {
+    final tid = int.tryParse(tarefaId);
+    if (tid == null) return [];
+
+    try {
+      final response = await http
+          .get(
+            Uri.parse('${ApiService.baseUrl}/api/tarefas/$tid/logs'),
+            headers: {
+              'Content-Type': 'application/json',
+              if (UserSession.currentOrNull?.id != null)
+                'x-user-id': UserSession.current.id.toString(),
+            },
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final list = (data['logs'] as List<dynamic>?)
+                ?.map((e) => TaskLog.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            [];
+        return list;
+      }
+    } catch (_) {}
+    return [];
   }
 }

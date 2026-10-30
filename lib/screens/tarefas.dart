@@ -6,6 +6,7 @@ import '../widgets/controle_acesso.dart';
 import '../widgets/create_task_modal.dart';
 import '../widgets/edit_task_modal.dart';
 import '../widgets/task_card.dart';
+import '../widgets/task_details_modal.dart';
 
 /// Tela de Tarefas — Totalmente conectada com a API e banco MySQL
 class TarefasScreen extends StatefulWidget {
@@ -251,6 +252,23 @@ class _TarefasScreenState extends State<TarefasScreen> {
       _selectedPriorityFilter = null;
       _sortByDueDate = false;
     });
+  }
+
+  void _openTaskDetails(Task task) {
+    final perms = UserSession.current.permissions;
+    TaskDetailsModal.show(
+      context: context,
+      task: task,
+      onStatusSelected: perms.alterarStatus
+          ? (newStatus) => _handleStatusUpdate(task, newStatus)
+          : null,
+      onEdit: perms.editarTarefas
+          ? () => _openEditTask(task)
+          : null,
+      onDelete: perms.excluirTarefas
+          ? () => _handleDeleteTask(task)
+          : null,
+    );
   }
 
   @override
@@ -550,6 +568,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
                                   final task = tasks[index];
                                   return TaskCard(
                                     task: task,
+                                    onTap: () => _openTaskDetails(task),
                                     onStatusSelected: perms.alterarStatus
                                         ? (newStatus) => _handleStatusUpdate(task, newStatus)
                                         : null,
