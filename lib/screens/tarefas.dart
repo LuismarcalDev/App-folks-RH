@@ -151,6 +151,24 @@ class _TarefasScreenState extends State<TarefasScreen> {
             _localTasks.insert(0, newTask);
           });
           widget.onTaskCreated?.call(newTask);
+
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text('Tarefa "${newTask.title}" criada com sucesso!'),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFF15803D),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         },
       ),
     );
@@ -176,6 +194,24 @@ class _TarefasScreenState extends State<TarefasScreen> {
             }
           });
           widget.onTaskEdited?.call(updatedTask);
+
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text('Tarefa "${updatedTask.title}" atualizada com sucesso!'),
+                  ),
+                ],
+              ),
+              backgroundColor: AppColors.primaryNavy,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         },
       ),
     );
@@ -202,7 +238,15 @@ class _TarefasScreenState extends State<TarefasScreen> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Status de "${task.title}" alterado para ${newStatus.label}'),
+        content: Row(
+          children: [
+            const Icon(Icons.sync_alt, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text('Status de "${task.title}" alterado para ${newStatus.label}'),
+            ),
+          ],
+        ),
         backgroundColor: newStatus.color,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
@@ -228,15 +272,31 @@ class _TarefasScreenState extends State<TarefasScreen> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Tarefa "${task.title}" excluída com sucesso.'),
-          backgroundColor: AppColors.primaryNavy,
+          content: Row(
+            children: [
+              const Icon(Icons.delete_outline, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Tarefa "${task.title}" excluída com sucesso.'),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.redAccent.shade700,
           behavior: SnackBarBehavior.floating,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Erro ao excluir tarefa do banco.'),
+          content: Row(
+            children: const [
+              Icon(Icons.error_outline, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text('Erro ao excluir tarefa do banco.'),
+              ),
+            ],
+          ),
           backgroundColor: Colors.redAccent.shade700,
           behavior: SnackBarBehavior.floating,
         ),
