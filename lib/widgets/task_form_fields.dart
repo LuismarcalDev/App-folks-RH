@@ -15,6 +15,9 @@ class TaskFormFields extends StatelessWidget {
   final ValueChanged<ManagerOption> onManagerChanged;
   final TaskStatus selectedStatus;
   final ValueChanged<TaskStatus> onStatusChanged;
+  final List<ClientOption>? clients;
+  final ClientOption? selectedClient;
+  final ValueChanged<ClientOption?>? onClientChanged;
 
   const TaskFormFields({
     super.key,
@@ -29,6 +32,9 @@ class TaskFormFields extends StatelessWidget {
     required this.onManagerChanged,
     required this.selectedStatus,
     required this.onStatusChanged,
+    this.clients,
+    this.selectedClient,
+    this.onClientChanged,
   });
 
   static Future<DateTime?> pickTaskDate(BuildContext context, DateTime initialDate) {
@@ -184,7 +190,7 @@ class TaskFormFields extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Gestor',
+                    'Responsável',
                     style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 6),
@@ -205,10 +211,22 @@ class TaskFormFields extends StatelessWidget {
                         items: managers.map((mgr) {
                           return DropdownMenuItem<ManagerOption>(
                             value: mgr,
-                            child: Text(
-                              mgr.name,
-                              style: const TextStyle(color: Colors.white, fontSize: 11),
-                              overflow: TextOverflow.ellipsis,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  mgr.name,
+                                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (mgr.role != null && mgr.role!.isNotEmpty)
+                                  Text(
+                                    mgr.role!,
+                                    style: const TextStyle(color: Colors.white54, fontSize: 9.5),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                              ],
                             ),
                           );
                         }).toList(),
@@ -223,6 +241,51 @@ class TaskFormFields extends StatelessWidget {
             ),
           ],
         ),
+        if (clients != null && onClientChanged != null) ...[
+          const SizedBox(height: 14),
+          const Text(
+            'Cliente Associado (Opcional)',
+            style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: AppColors.bgInput,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.borderSubtle),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<ClientOption?>(
+                value: selectedClient,
+                isExpanded: true,
+                dropdownColor: AppColors.bgInput,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white70),
+                items: [
+                  const DropdownMenuItem<ClientOption?>(
+                    value: null,
+                    child: Text(
+                      'Nenhum cliente (Interno / Geral)',
+                      style: TextStyle(color: Colors.white60, fontSize: 11),
+                    ),
+                  ),
+                  ...clients!.map((cli) {
+                    return DropdownMenuItem<ClientOption?>(
+                      value: cli,
+                      child: Text(
+                        cli.name,
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }),
+                ],
+                onChanged: onClientChanged,
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: 14),
         const Text(
           'Status da Tarefa',

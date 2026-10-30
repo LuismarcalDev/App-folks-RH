@@ -64,6 +64,15 @@ class Task {
     return DateTime.now();
   }
 
+  static String initialsFromName(String name) {
+    final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return 'RH';
+    if (parts.length == 1) {
+      return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
+    }
+    return '${parts[0][0].toUpperCase()} ${parts[1][0].toUpperCase()}';
+  }
+
   final String id;
   final String title;
   final String description;
@@ -75,6 +84,9 @@ class Task {
   final TaskStatus status;
   final bool isViewed;
   final String section;
+  final int? userId;
+  final int? clientId;
+  final String? clientName;
 
   const Task({
     required this.id,
@@ -88,10 +100,13 @@ class Task {
     required this.status,
     this.isViewed = true,
     this.section = 'NA ÚLTIMA SEMANA',
+    this.userId,
+    this.clientId,
+    this.clientName,
   });
 
   factory Task.fromJson(Map<String, dynamic> json) {
-    final manager = (json['managerName'] ?? 'LUIS FELIPPE').toString();
+    final manager = (json['managerName'] ?? 'Admin Folks').toString();
     return Task(
       id: (json['id'] ?? DateTime.now().millisecondsSinceEpoch).toString(),
       title: (json['title'] ?? '').toString(),
@@ -100,9 +115,12 @@ class Task {
       dueDate: (json['dueDate'] ?? '25/08/2026').toString(),
       timeAgo: (json['timeAgo'] ?? 'Agora').toString(),
       managerName: manager,
-      managerInitials: (json['managerInitials'] ?? 'L F').toString(),
+      managerInitials: (json['managerInitials'] ?? initialsFromName(manager)).toString(),
       status: TaskStatus.fromBackend(json['status']?.toString()),
       isViewed: json['isViewed'] == null ? true : (json['isViewed'] == true || json['isViewed'] == 1),
+      userId: json['userId'] is int ? json['userId'] as int : int.tryParse(json['userId']?.toString() ?? ''),
+      clientId: json['clientId'] is int ? json['clientId'] as int : int.tryParse(json['clientId']?.toString() ?? ''),
+      clientName: json['clientName']?.toString(),
     );
   }
 
@@ -118,7 +136,9 @@ class Task {
       'managerInitials': managerInitials,
       'status': status.backendKey,
       'isViewed': isViewed,
-      'userId': ?userId,
+      'userId': userId ?? this.userId,
+      'clientId': clientId,
+      'clientName': clientName,
     };
   }
 
@@ -134,6 +154,9 @@ class Task {
     TaskStatus? status,
     bool? isViewed,
     String? section,
+    int? userId,
+    int? clientId,
+    String? clientName,
   }) {
     return Task(
       id: id ?? this.id,
@@ -147,6 +170,9 @@ class Task {
       status: status ?? this.status,
       isViewed: isViewed ?? this.isViewed,
       section: section ?? this.section,
+      userId: userId ?? this.userId,
+      clientId: clientId ?? this.clientId,
+      clientName: clientName ?? this.clientName,
     );
   }
 }
@@ -159,49 +185,10 @@ final List<Task> mockTasks = [
     priority: TaskPriority.alta,
     dueDate: '25/08/2026',
     timeAgo: '2h',
-    managerName: 'LUIS FELIPPE',
-    managerInitials: 'L F',
+    managerName: 'Admin Folks',
+    managerInitials: 'A F',
     status: TaskStatus.emAndamento,
     isViewed: true,
-    section: 'NA ÚLTIMA SEMANA',
-  ),
-  const Task(
-    id: '2',
-    title: 'AVALIAÇÃO DE DESEMPENHO',
-    description: 'Análise trimestral de metas da equipe técnica.',
-    priority: TaskPriority.alta,
-    dueDate: '28/08/2026',
-    timeAgo: '5h',
-    managerName: 'ANA BEATRIZ',
-    managerInitials: 'A B',
-    status: TaskStatus.emAndamento,
-    isViewed: true,
-    section: 'NA ÚLTIMA SEMANA',
-  ),
-  const Task(
-    id: '3',
-    title: 'TRIAGEM DE CURRÍCULOS',
-    description: 'Seleção inicial para vaga de Desenvolvedor Flutter.',
-    priority: TaskPriority.media,
-    dueDate: '30/08/2026',
-    timeAgo: '1d',
-    managerName: 'LUIS FELIPPE',
-    managerInitials: 'L F',
-    status: TaskStatus.pendente,
-    isViewed: false,
-    section: 'NA ÚLTIMA SEMANA',
-  ),
-  const Task(
-    id: '4',
-    title: 'FEEDBACK ONBOARDING',
-    description: 'Alinhamento com novos contratados do time comercial.',
-    priority: TaskPriority.baixa,
-    dueDate: '02/09/2026',
-    timeAgo: '2d',
-    managerName: 'CARLOS SILVA',
-    managerInitials: 'C S',
-    status: TaskStatus.concluido,
-    isViewed: false,
     section: 'NA ÚLTIMA SEMANA',
   ),
 ];
@@ -212,16 +199,49 @@ class TaskSession {
 }
 
 class ManagerOption {
+  final int? id;
   final String name;
   final String initials;
+  final String? role;
 
-  const ManagerOption({required this.name, required this.initials});
+  const ManagerOption({
+    this.id,
+    required this.name,
+    required this.initials,
+    this.role,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ManagerOption &&
+          runtimeType == other.runtimeType &&
+          ((id != null && id == other.id) || name.toUpperCase().trim() == other.name.toUpperCase().trim());
+
+  @override
+  int get hashCode => (id ?? name.toUpperCase().trim()).hashCode;
+}
+
+class ClientOption {
+  final int? id;
+  final String name;
+
+  const ClientOption({this.id, required this.name});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ClientOption &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 const List<ManagerOption> availableManagers = [
-  ManagerOption(name: 'LUIS FELIPPE', initials: 'L F'),
-  ManagerOption(name: 'ANA BEATRIZ', initials: 'A B'),
-  ManagerOption(name: 'CARLOS SILVA', initials: 'C S'),
-  ManagerOption(name: 'IGOR VEIGA', initials: 'I V'),
-  ManagerOption(name: 'MARIANA DIAS', initials: 'M D'),
+  ManagerOption(id: 1, name: 'Admin Folks', initials: 'A F', role: 'Gestor de RH'),
+  ManagerOption(name: 'LUIS FELIPPE', initials: 'L F', role: 'Gestor de RH'),
+  ManagerOption(name: 'ANA BEATRIZ', initials: 'A B', role: 'Analista de RH'),
+  ManagerOption(name: 'CARLOS SILVA', initials: 'C S', role: 'Assistente de RH'),
 ];

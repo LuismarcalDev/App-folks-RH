@@ -5,9 +5,13 @@ class TarefaService {
   Future<List<Map<String, dynamic>>> listarTodas() async {
     final conn = await Database.getConnection();
     const sql = '''
-      SELECT Id, Titulo, Descricao, Status, Prioridade, Data_Vencimento, Data_Criacao, Gestor_Nome, Visualizado
-      FROM tarefas
-      ORDER BY Id DESC;
+      SELECT t.Id, t.Titulo, t.Descricao, t.Status, t.Prioridade, t.Data_Vencimento, t.Data_Criacao, 
+             t.Gestor_Nome, t.Visualizado, t.Usuarios_Id, t.Clientes_Id,
+             c.Nome AS Cliente_Nome, u.Nome AS Usuario_Nome
+      FROM tarefas t
+      LEFT JOIN clientes c ON c.Id = t.Clientes_Id
+      LEFT JOIN usuarios u ON u.Id = t.Usuarios_Id
+      ORDER BY t.Id DESC;
     ''';
     final res = await conn.execute(sql);
     return res.rows.map((r) => TarefaModel.fromRow(r).toJson()).toList();
@@ -24,15 +28,20 @@ class TarefaService {
     final usuarioId = data['userId'] is int
         ? data['userId'] as int
         : int.tryParse(data['userId']?.toString() ?? '');
+    final clienteId = data['clientId'] is int
+        ? data['clientId'] as int
+        : int.tryParse(data['clientId']?.toString() ?? '');
+    final clientName = data['clientName']?.toString().trim();
 
     const sql = '''
-      INSERT INTO tarefas (Titulo, Usuarios_Id, Descricao, Status, Prioridade, Data_Vencimento, Data_Criacao, Gestor_Nome, Visualizado)
-      VALUES (:titulo, :uid, :desc, :status, :prio, :venc, 'Agora', :gestor, 1);
+      INSERT INTO tarefas (Titulo, Usuarios_Id, Clientes_Id, Descricao, Status, Prioridade, Data_Vencimento, Data_Criacao, Gestor_Nome, Visualizado)
+      VALUES (:titulo, :uid, :cid, :desc, :status, :prio, :venc, 'Agora', :gestor, 1);
     ''';
 
     final res = await conn.execute(sql, {
       'titulo': titulo,
       'uid': usuarioId,
+      'cid': clienteId,
       'desc': descricao,
       'status': status,
       'prio': prioridade,
@@ -56,6 +65,9 @@ class TarefaService {
       managerName: gestorNome,
       managerInitials: TarefaModel.initialsFromName(gestorNome),
       isViewed: true,
+      userId: usuarioId,
+      clientId: clienteId,
+      clientName: clientName,
     ).toJson();
   }
 
@@ -67,6 +79,13 @@ class TarefaService {
     final prioridade = (data['priority'] ?? 'alta').toString().trim();
     final dataVencimento = TarefaModel.formatDateToSql(data['dueDate']?.toString());
     final gestorNome = (data['managerName'] ?? 'LUIS FELIPPE').toString().trim();
+    final usuarioId = data['userId'] is int
+        ? data['userId'] as int
+        : int.tryParse(data['userId']?.toString() ?? '');
+    final clienteId = data['clientId'] is int
+        ? data['clientId'] as int
+        : int.tryParse(data['clientId']?.toString() ?? '');
+    final clientName = data['clientName']?.toString().trim();
 
     const sql = '''
       UPDATE tarefas
@@ -75,7 +94,9 @@ class TarefaService {
           Status = :status,
           Prioridade = :prio,
           Data_Vencimento = :venc,
-          Gestor_Nome = :gestor
+          Gestor_Nome = :gestor,
+          Usuarios_Id = :uid,
+          Clientes_Id = :cid
       WHERE Id = :id;
     ''';
 
@@ -87,6 +108,8 @@ class TarefaService {
       'prio': prioridade,
       'venc': dataVencimento,
       'gestor': gestorNome,
+      'uid': usuarioId,
+      'cid': clienteId,
     });
 
     await _registrarLog(
@@ -106,6 +129,9 @@ class TarefaService {
       managerName: gestorNome,
       managerInitials: TarefaModel.initialsFromName(gestorNome),
       isViewed: true,
+      userId: usuarioId,
+      clientId: clienteId,
+      clientName: clientName,
     ).toJson();
   }
 

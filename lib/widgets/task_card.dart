@@ -192,6 +192,35 @@ class TaskCard extends StatelessWidget {
             task.description,
             style: const TextStyle(color: Colors.white, fontSize: 12.5, height: 1.2),
           ),
+          if (task.clientName != null && task.clientName!.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.35)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.business_outlined, size: 12, color: Colors.amberAccent),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      'Cliente: ${task.clientName}',
+                      style: const TextStyle(
+                        color: Colors.amberAccent,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
