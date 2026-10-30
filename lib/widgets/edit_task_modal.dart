@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
+import '../services/tarefa_service.dart';
 import '../theme/app_colors.dart';
 import 'task_form_fields.dart';
 
@@ -27,6 +28,7 @@ class _EditTaskModalState extends State<EditTaskModal> {
   late DateTime _selectedDate;
   late List<ManagerOption> _managers;
   late ManagerOption _selectedManager;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -73,8 +75,11 @@ class _EditTaskModalState extends State<EditTaskModal> {
     }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
 
     final updatedTask = widget.task.copyWith(
       title: _titleController.text.trim().toUpperCase(),
@@ -88,8 +93,21 @@ class _EditTaskModalState extends State<EditTaskModal> {
       status: _selectedStatus,
     );
 
-    widget.onTaskSaved(updatedTask);
+    final saved = await TarefaService.editarTarefa(updatedTask);
+    if (!mounted) return;
+
+    setState(() => _isLoading = false);
+
+    widget.onTaskSaved(saved);
     Navigator.pop(context);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Tarefa "${saved.title}" atualizada com sucesso!'),
+        backgroundColor: AppColors.primaryNavy,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -151,11 +169,17 @@ class _EditTaskModalState extends State<EditTaskModal> {
               ),
               const SizedBox(height: 22),
               ElevatedButton.icon(
-                onPressed: _submit,
-                icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                label: const Text(
-                  'SALVAR ALTERAÇÕES',
-                  style: TextStyle(
+                onPressed: _isLoading ? null : _submit,
+                icon: _isLoading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.check, color: Colors.white, size: 18),
+                label: Text(
+                  _isLoading ? 'SALVANDO...' : 'SALVAR ALTERAÇÕES',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 13,

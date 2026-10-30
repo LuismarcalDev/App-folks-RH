@@ -15,19 +15,19 @@ class TarefaService {
                 'x-user-id': UserSession.current.id.toString(),
             },
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final list = (data['tarefas'] as List<dynamic>)
             .map((e) => Task.fromJson(e as Map<String, dynamic>))
             .toList();
-        if (list.isNotEmpty) {
-          TaskSession.tasks = list;
-          return list;
-        }
+        TaskSession.tasks = list;
+        return list;
       }
-    } catch (_) {}
+    } catch (e) {
+      // Falha de rede ou timeout
+    }
     return TaskSession.tasks;
   }
 
@@ -47,11 +47,12 @@ class TarefaService {
             },
             body: jsonEncode(newTask.toJson(userId: UserSession.currentOrNull?.id)),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final created = Task.fromJson(data['tarefa'] as Map<String, dynamic>);
+        TaskSession.tasks.removeWhere((t) => t.id == created.id);
         TaskSession.tasks.insert(0, created);
         return created;
       }
@@ -63,7 +64,7 @@ class TarefaService {
 
   static Future<Task> editarTarefa(Task updatedTask) async {
     try {
-      await http
+      final response = await http
           .put(
             Uri.parse('${ApiService.baseUrl}/api/tarefas/${updatedTask.id}'),
             headers: {
@@ -73,7 +74,19 @@ class TarefaService {
             },
             body: jsonEncode(updatedTask.toJson(userId: UserSession.currentOrNull?.id)),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        if (data['tarefa'] != null) {
+          final serverUpdated = Task.fromJson(data['tarefa'] as Map<String, dynamic>);
+          final idx = TaskSession.tasks.indexWhere((t) => t.id == serverUpdated.id);
+          if (idx != -1) {
+            TaskSession.tasks[idx] = serverUpdated;
+          }
+          return serverUpdated;
+        }
+      }
     } catch (_) {}
 
     final idx = TaskSession.tasks.indexWhere((t) => t.id == updatedTask.id);
@@ -96,7 +109,7 @@ class TarefaService {
             },
             body: jsonEncode({'status': newStatus.backendKey}),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 5));
     } catch (_) {}
 
     final idx = TaskSession.tasks.indexWhere((t) => t.id == task.id);
@@ -108,7 +121,7 @@ class TarefaService {
 
   static Future<bool> excluirTarefa(Task task) async {
     try {
-      await http
+      final response = await http
           .delete(
             Uri.parse('${ApiService.baseUrl}/api/tarefas/${task.id}'),
             headers: {
@@ -116,7 +129,12 @@ class TarefaService {
                 'x-user-id': UserSession.current.id.toString(),
             },
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        TaskSession.tasks.removeWhere((t) => t.id == task.id);
+        return true;
+      }
     } catch (_) {}
 
     TaskSession.tasks.removeWhere((t) => t.id == task.id);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
+import '../services/tarefa_service.dart';
 import '../theme/app_colors.dart';
 import 'task_form_fields.dart';
 
@@ -21,6 +22,7 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
   TaskStatus _selectedStatus = TaskStatus.emAndamento;
   DateTime _selectedDate = DateTime(2026, 8, 25);
   ManagerOption _selectedManager = availableManagers.first;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -36,7 +38,9 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
     }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_isLoading) return;
+
     if (!UserSession.current.permissions.criarTarefas) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -53,8 +57,10 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
 
     if (!_formKey.currentState!.validate()) return;
 
-    final newTask = Task(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+    setState(() => _isLoading = true);
+
+    final newTaskDraft = Task(
+      id: '0',
       title: _titleController.text.trim().toUpperCase(),
       description: _descController.text.trim().isEmpty
           ? 'Sem descrição cadastrada.'
@@ -68,8 +74,30 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
       isViewed: true,
     );
 
-    widget.onTaskCreated(newTask);
-    Navigator.pop(context);
+    final created = await TarefaService.criarTarefa(newTaskDraft);
+    if (!mounted) return;
+
+    setState(() => _isLoading = false);
+
+    if (created != null) {
+      widget.onTaskCreated(created);
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Tarefa "${created.title}" criada com sucesso!'),
+          backgroundColor: AppColors.primaryNavy,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Erro ao salvar a tarefa no banco de dados.'),
+          backgroundColor: Colors.redAccent.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -125,7 +153,7 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
               ),
               const SizedBox(height: 22),
               ElevatedButton(
-                onPressed: _submit,
+                onPressed: _isLoading ? null : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryNavy,
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -134,15 +162,24 @@ class _CreateTaskModalState extends State<CreateTaskModal> {
                     side: BorderSide(color: AppColors.borderStrong, width: 1.0),
                   ),
                 ),
-                child: const Text(
-                  'CRIAR TAREFA',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    letterSpacing: 0.5,
-                  ),
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'CRIAR TAREFA',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
               ),
             ],
           ),

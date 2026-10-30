@@ -59,7 +59,36 @@ class _InicioScreenState extends State<InicioScreen> {
 
     final screens = [
       _buildDashboardTab(user, perms),
-      TarefasScreen(tasks: _tasks),
+      TarefasScreen(
+        tasks: _tasks,
+        onTaskCreated: (newTask) {
+          setState(() {
+            _tasks.removeWhere((t) => t.id == newTask.id);
+            _tasks.insert(0, newTask);
+          });
+        },
+        onStatusUpdated: (task, newStatus) {
+          setState(() {
+            final idx = _tasks.indexWhere((t) => t.id == task.id);
+            if (idx != -1) {
+              _tasks[idx] = _tasks[idx].copyWith(status: newStatus);
+            }
+          });
+        },
+        onTaskEdited: (updatedTask) {
+          setState(() {
+            final idx = _tasks.indexWhere((t) => t.id == updatedTask.id);
+            if (idx != -1) {
+              _tasks[idx] = updatedTask;
+            }
+          });
+        },
+        onTaskDeleted: (task) {
+          setState(() {
+            _tasks.removeWhere((t) => t.id == task.id);
+          });
+        },
+      ),
       const ClientesScreen(),
       const NotificacaoScreen(),
     ];

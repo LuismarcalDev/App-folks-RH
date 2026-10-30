@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
+import '../services/tarefa_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/controle_acesso.dart';
 import '../widgets/create_task_modal.dart';
 import '../widgets/edit_task_modal.dart';
 import '../widgets/task_card.dart';
 
-/// Tela de Tarefas — Estrutura preparada para o desenvolvedor responsável
-/// Backend conectado: /api/tarefas (listar, criar, editar, alterar status, excluir)
+/// Tela de Tarefas — Totalmente conectada com a API e banco MySQL
 class TarefasScreen extends StatefulWidget {
   final List<Task>? tasks;
   final Function(Task newTask)? onTaskCreated;
@@ -32,10 +32,39 @@ class _TarefasScreenState extends State<TarefasScreen> {
   int _selectedFilterIndex = 0; // 0: Todas, 1: Em Andamento, 2: Pendentes, 3: Concluídas
   final List<String> _filters = ['Todas', 'Em Andamento', 'Pendentes', 'Concluídas'];
 
-  List<Task> get _currentTasks => widget.tasks ?? TaskSession.tasks;
+  bool _isLoading = false;
+  late List<Task> _localTasks;
+
+  @override
+  void initState() {
+    super.initState();
+    _localTasks = widget.tasks != null
+        ? List<Task>.from(widget.tasks!)
+        : List<Task>.from(TaskSession.tasks);
+
+    _carregarTarefasDoBanco();
+  }
+
+  @override
+  void didUpdateWidget(covariant TarefasScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.tasks != null) {
+      _localTasks = List<Task>.from(widget.tasks!);
+    }
+  }
+
+  Future<void> _carregarTarefasDoBanco() async {
+    setState(() => _isLoading = true);
+    final loaded = await TarefaService.listarTarefas();
+    if (!mounted) return;
+    setState(() {
+      _localTasks = List<Task>.from(loaded);
+      _isLoading = false;
+    });
+  }
 
   List<Task> get _filteredTasks {
-    final all = _currentTasks;
+    final all = _localTasks;
     switch (_selectedFilterIndex) {
       case 1:
         return all.where((t) => t.status == TaskStatus.emAndamento).toList();
@@ -71,8 +100,11 @@ class _TarefasScreenState extends State<TarefasScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => CreateTaskModal(
         onTaskCreated: (newTask) {
+          setState(() {
+            _localTasks.removeWhere((t) => t.id == newTask.id);
+            _localTasks.insert(0, newTask);
+          });
           widget.onTaskCreated?.call(newTask);
-          setState(() {});
         },
       ),
     );
@@ -91,11 +123,79 @@ class _TarefasScreenState extends State<TarefasScreen> {
       builder: (ctx) => EditTaskModal(
         task: task,
         onTaskSaved: (updatedTask) {
+          setState(() {
+            final idx = _localTasks.indexWhere((t) => t.id == updatedTask.id);
+            if (idx != -1) {
+              _localTasks[idx] = updatedTask;
+            }
+          });
           widget.onTaskEdited?.call(updatedTask);
-          setState(() {});
         },
       ),
     );
+  }
+
+  Future<void> _handleStatusUpdate(Task task, TaskStatus newStatus) async {
+    if (!UserSession.current.permissions.alterarStatus) {
+      _showPermissionDenied('alterar status');
+      return;
+    }
+
+    final updated = await TarefaService.alterarStatusTarefa(task, newStatus);
+    if (!mounted) return;
+
+    setState(() {
+      final idx = _localTasks.indexWhere((t) => t.id == task.id);
+      if (idx != -1) {
+        _localTasks[idx] = updated;
+      }
+    });
+
+    widget.onStatusUpdated?.call(task, newStatus);
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Status de "${task.title}" alterado para ${newStatus.label}'),
+        backgroundColor: newStatus.color,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _handleDeleteTask(Task task) async {
+    if (!UserSession.current.permissions.excluirTarefas) {
+      _showPermissionDenied('excluir tarefas');
+      return;
+    }
+
+    final success = await TarefaService.excluirTarefa(task);
+    if (!mounted) return;
+
+    if (success) {
+      setState(() {
+        _localTasks.removeWhere((t) => t.id == task.id);
+      });
+      widget.onTaskDeleted?.call(task);
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Tarefa "${task.title}" excluída com sucesso.'),
+          backgroundColor: AppColors.primaryNavy,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Erro ao excluir tarefa do banco.'),
+          backgroundColor: Colors.redAccent.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -119,14 +219,35 @@ class _TarefasScreenState extends State<TarefasScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'TAREFAS',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.8,
-                      ),
+                    Row(
+                      children: [
+                        const Text(
+                          'TAREFAS',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: _carregarTarefasDoBanco,
+                          tooltip: 'Atualizar do Banco de Dados',
+                          icon: _isLoading
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white70,
+                                  ),
+                                )
+                              : const Icon(Icons.refresh, color: Colors.white70, size: 18),
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.all(4),
+                        ),
+                      ],
                     ),
                     InkWell(
                       onTap: _openCreateTask,
@@ -204,46 +325,70 @@ class _TarefasScreenState extends State<TarefasScreen> {
 
               const SizedBox(height: 12),
 
-              // Lista de Tarefas
+              // Lista de Tarefas com Pull-to-refresh
               Expanded(
-                child: tasks.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.task_alt, size: 48, color: Colors.white.withValues(alpha: 0.4)),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Nenhuma tarefa nesta categoria',
-                              style: TextStyle(color: Colors.white60, fontSize: 14),
-                            ),
-                          ],
-                        ),
+                child: _isLoading && _localTasks.isEmpty
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
                       )
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
-                        itemCount: tasks.length,
-                        itemBuilder: (context, index) {
-                          final task = tasks[index];
-                          return TaskCard(
-                            task: task,
-                            onStatusSelected: perms.alterarStatus
-                                ? (newStatus) {
-                                    widget.onStatusUpdated?.call(task, newStatus);
-                                    setState(() {});
-                                  }
-                                : null,
-                            onStatusChanged: perms.alterarStatus
-                                ? null
-                                : () => _showPermissionDenied('alterar status'),
-                            onEdit: perms.editarTarefas
-                                ? () => _openEditTask(task)
-                                : () => _showPermissionDenied('editar tarefas'),
-                            onDelete: perms.excluirTarefas
-                                ? () => widget.onTaskDeleted?.call(task)
-                                : () => _showPermissionDenied('excluir tarefas'),
-                          );
-                        },
+                    : RefreshIndicator(
+                        onRefresh: _carregarTarefasDoBanco,
+                        color: Colors.white,
+                        backgroundColor: AppColors.primaryNavy,
+                        child: tasks.isEmpty
+                            ? ListView(
+                                padding: const EdgeInsets.only(top: 60),
+                                children: [
+                                  Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.task_alt,
+                                          size: 48,
+                                          color: Colors.white.withValues(alpha: 0.4),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        const Text(
+                                          'Nenhuma tarefa nesta categoria',
+                                          style: TextStyle(color: Colors.white60, fontSize: 14),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        TextButton.icon(
+                                          onPressed: _carregarTarefasDoBanco,
+                                          icon: const Icon(Icons.refresh, size: 16, color: Colors.white70),
+                                          label: const Text(
+                                            'Recarregar do banco',
+                                            style: TextStyle(color: Colors.white70),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+                                itemCount: tasks.length,
+                                itemBuilder: (context, index) {
+                                  final task = tasks[index];
+                                  return TaskCard(
+                                    task: task,
+                                    onStatusSelected: perms.alterarStatus
+                                        ? (newStatus) => _handleStatusUpdate(task, newStatus)
+                                        : null,
+                                    onStatusChanged: perms.alterarStatus
+                                        ? null
+                                        : () => _showPermissionDenied('alterar status'),
+                                    onEdit: perms.editarTarefas
+                                        ? () => _openEditTask(task)
+                                        : () => _showPermissionDenied('editar tarefas'),
+                                    onDelete: perms.excluirTarefas
+                                        ? () => _handleDeleteTask(task)
+                                        : () => _showPermissionDenied('excluir tarefas'),
+                                  );
+                                },
+                              ),
                       ),
               ),
             ],
