@@ -365,6 +365,9 @@ class _TarefasScreenState extends State<TarefasScreen> {
                 ),
               ),
 
+              // Cards de Métricas / Resumo das Tarefas
+              _buildMetricsSummary(),
+
               // Barra de Pesquisa por Texto
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -588,6 +591,191 @@ class _TarefasScreenState extends State<TarefasScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetricsSummary() {
+    final totalTasks = _localTasks.length;
+    final emAndamentoCount = _localTasks.where((t) => t.status == TaskStatus.emAndamento).length;
+    final pendentesCount = _localTasks.where((t) => t.status == TaskStatus.pendente).length;
+    final concluidasCount = _localTasks.where((t) => t.status == TaskStatus.concluido).length;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 2, 20, 10),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 460) {
+            return SizedBox(
+              height: 64,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _buildMetricCard(
+                    title: 'Total',
+                    count: totalTasks,
+                    icon: Icons.assignment_outlined,
+                    color: const Color(0xFF60A5FA),
+                    index: 0,
+                    width: 105,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildMetricCard(
+                    title: 'Andamento',
+                    count: emAndamentoCount,
+                    icon: Icons.pending_actions_outlined,
+                    color: const Color(0xFF818CF8),
+                    index: 1,
+                    width: 115,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildMetricCard(
+                    title: 'Pendentes',
+                    count: pendentesCount,
+                    icon: Icons.schedule_outlined,
+                    color: const Color(0xFFFBBF24),
+                    index: 2,
+                    width: 110,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildMetricCard(
+                    title: 'Concluídas',
+                    count: concluidasCount,
+                    icon: Icons.task_alt_outlined,
+                    color: const Color(0xFF34D399),
+                    index: 3,
+                    width: 115,
+                  ),
+                ],
+              ),
+            );
+          }
+          return Row(
+            children: [
+              Expanded(
+                child: _buildMetricCard(
+                  title: 'Total',
+                  count: totalTasks,
+                  icon: Icons.assignment_outlined,
+                  color: const Color(0xFF60A5FA),
+                  index: 0,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildMetricCard(
+                  title: 'Andamento',
+                  count: emAndamentoCount,
+                  icon: Icons.pending_actions_outlined,
+                  color: const Color(0xFF818CF8),
+                  index: 1,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildMetricCard(
+                  title: 'Pendentes',
+                  count: pendentesCount,
+                  icon: Icons.schedule_outlined,
+                  color: const Color(0xFFFBBF24),
+                  index: 2,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildMetricCard(
+                  title: 'Concluídas',
+                  count: concluidasCount,
+                  icon: Icons.task_alt_outlined,
+                  color: const Color(0xFF34D399),
+                  index: 3,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMetricCard({
+    required String title,
+    required int count,
+    required IconData icon,
+    required Color color,
+    required int index,
+    double? width,
+  }) {
+    final isSelected = _selectedStatusIndex == index;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          if (_selectedStatusIndex == index && index != 0) {
+            _selectedStatusIndex = 0;
+          } else {
+            _selectedStatusIndex = index;
+          }
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: width,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.18) : AppColors.bgCard,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : AppColors.borderSubtle,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  count.toString(),
+                  style: TextStyle(
+                    color: isSelected ? color : Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(icon, color: color, size: 14),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected ? Colors.white : const Color(0xFF9E9EA7),
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );
