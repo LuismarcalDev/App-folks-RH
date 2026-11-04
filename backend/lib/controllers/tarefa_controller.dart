@@ -87,4 +87,17 @@ class TarefaController {
       return ApiResponse.serverError('Erro ao excluir tarefa: $e');
     }
   }
+
+  Future<Response> listarLogs(Request request, String id) async {
+    try {
+      final tarefaId = int.tryParse(id);
+      if (tarefaId == null) {
+        return ApiResponse.badRequest('ID de tarefa inválido.');
+      }
+      final logs = await _tarefaService.listarLogs(tarefaId);
+      return ApiResponse.ok({'logs': logs});
+    } catch (e) {
+      return ApiResponse.serverError('Erro ao buscar logs da tarefa: $e');
+    }
+  }
 }

@@ -20,8 +20,9 @@ void main() async {
 
   try {
     await Database.getConnection();
-  } catch (_) {
-    print('⚠️ Não foi possível conectar ao MySQL na inicialização. Verifique o .env e o MySQL.');
+    print('✅ Banco de dados MySQL conectado com sucesso!');
+  } catch (e) {
+    print('⚠️ Não foi possível conectar ao MySQL na inicialização: $e');
   }
 
   final app = Router();

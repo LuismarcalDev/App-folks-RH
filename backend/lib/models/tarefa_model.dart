@@ -11,6 +11,9 @@ class TarefaModel {
   final String managerName;
   final String managerInitials;
   final bool isViewed;
+  final int? userId;
+  final int? clientId;
+  final String? clientName;
 
   const TarefaModel({
     required this.id,
@@ -23,6 +26,9 @@ class TarefaModel {
     required this.managerName,
     required this.managerInitials,
     required this.isViewed,
+    this.userId,
+    this.clientId,
+    this.clientName,
   });
 
   static String formatDateToBr(String? dbDate) {
@@ -55,18 +61,21 @@ class TarefaModel {
   }
 
   factory TarefaModel.fromRow(ResultSetRow row) {
-    final manager = row.colAt(7) ?? 'LUIS FELIPPE';
+    final manager = row.colByName('Gestor_Nome') ?? row.colByName('Usuario_Nome') ?? 'LUIS FELIPPE';
     return TarefaModel(
-      id: row.colAt(0) ?? '1',
-      title: row.colAt(1) ?? '',
-      description: row.colAt(2) ?? 'Sem descrição cadastrada.',
-      status: row.colAt(3) ?? 'em_andamento',
-      priority: row.colAt(4) ?? 'alta',
-      dueDate: formatDateToBr(row.colAt(5)),
-      timeAgo: row.colAt(6) ?? 'Agora',
+      id: row.colByName('Id') ?? '1',
+      title: row.colByName('Titulo') ?? '',
+      description: row.colByName('Descricao') ?? 'Sem descrição cadastrada.',
+      status: row.colByName('Status') ?? 'em_andamento',
+      priority: row.colByName('Prioridade') ?? 'alta',
+      dueDate: formatDateToBr(row.colByName('Data_Vencimento')),
+      timeAgo: row.colByName('Data_Criacao') ?? 'Agora',
       managerName: manager,
       managerInitials: initialsFromName(manager),
-      isViewed: (row.colAt(8) ?? '1') == '1',
+      isViewed: (row.colByName('Visualizado') ?? '1') == '1',
+      userId: int.tryParse(row.colByName('Usuarios_Id') ?? ''),
+      clientId: int.tryParse(row.colByName('Clientes_Id') ?? ''),
+      clientName: row.colByName('Cliente_Nome'),
     );
   }
 
@@ -82,6 +91,9 @@ class TarefaModel {
       'managerName': managerName,
       'managerInitials': managerInitials,
       'isViewed': isViewed,
+      'userId': userId,
+      'clientId': clientId,
+      'clientName': clientName,
     };
   }
 }

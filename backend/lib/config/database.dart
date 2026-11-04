@@ -42,6 +42,10 @@ class Database {
       await conn.execute('''
         CREATE TABLE IF NOT EXISTS permissoes_usuario (
           Usuario_Id INT NOT NULL PRIMARY KEY,
+          Clientes TINYINT(1) NOT NULL DEFAULT 1,
+          Tarefas TINYINT(1) NOT NULL DEFAULT 1,
+          Notificacoes TINYINT(1) NOT NULL DEFAULT 1,
+          Funcionarios TINYINT(1) NOT NULL DEFAULT 0,
           Criar_Tarefas TINYINT(1) NOT NULL DEFAULT 0,
           Editar_Tarefas TINYINT(1) NOT NULL DEFAULT 1,
           Excluir_Tarefas TINYINT(1) NOT NULL DEFAULT 1,
@@ -64,6 +68,18 @@ class Database {
           Alterar_Status TINYINT(1) NOT NULL DEFAULT 1,
           Ver_Desempenho TINYINT(1) NOT NULL DEFAULT 0,
           Gerenciar_Permissoes TINYINT(1) NOT NULL DEFAULT 0
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      ''');
+
+      await conn.execute('''
+        CREATE TABLE IF NOT EXISTS notificacoes (
+          Id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          Usuario_Id INT NULL,
+          Titulo VARCHAR(255) NOT NULL,
+          Mensagem TEXT NOT NULL,
+          Lida TINYINT(1) NOT NULL DEFAULT 0,
+          Data_Envio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          CONSTRAINT fk_notificacoes_usuario FOREIGN KEY (Usuario_Id) REFERENCES usuarios (Id) ON DELETE CASCADE ON UPDATE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       ''');
     } catch (_) {}
