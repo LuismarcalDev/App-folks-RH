@@ -48,32 +48,72 @@ class NotificacaoService {
   }
 
   Future<bool> marcarComoLida(int id, int? usuarioId) async {
-  final conn = await Database.getConnection();
-  final res = await conn.execute(
-    'UPDATE notificacoes SET Lida = 1 '
-    'WHERE Id = :id AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
-    {'id': id, 'uid': usuarioId},
-  );
-  return res.affectedRows.toInt() > 0;
-}
+    final conn = await Database.getConnection();
+    final res = await conn.execute(
+      'UPDATE notificacoes SET Lida = 1 '
+      'WHERE Id = :id AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
+      {'id': id, 'uid': usuarioId},
+    );
+    return res.affectedRows.toInt() > 0;
+  }
 
-Future<int> marcarTodasComoLidas(int? usuarioId) async {
-  final conn = await Database.getConnection();
-  final res = await conn.execute(
-    'UPDATE notificacoes SET Lida = 1 '
-    'WHERE Lida = 0 AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
-    {'uid': usuarioId},
-  );
-  return res.affectedRows.toInt();
-}
+  Future<int> marcarTodasComoLidas(int? usuarioId) async {
+    final conn = await Database.getConnection();
+    final res = await conn.execute(
+      'UPDATE notificacoes SET Lida = 1 '
+      'WHERE Lida = 0 AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
+      {'uid': usuarioId},
+    );
+    return res.affectedRows.toInt();
+  }
 
-Future<int> contarNaoLidas(int? usuarioId) async {
-  final conn = await Database.getConnection();
-  final res = await conn.execute(
-    'SELECT COUNT(*) FROM notificacoes '
-    'WHERE Lida = 0 AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
-    {'uid': usuarioId},
-  );
-  return int.tryParse(res.rows.first.colAt(0) ?? '0') ?? 0;
-}
+  Future<int> contarNaoLidas(int? usuarioId) async {
+    final conn = await Database.getConnection();
+    final res = await conn.execute(
+      'SELECT COUNT(*) FROM notificacoes '
+      'WHERE Lida = 0 AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
+      {'uid': usuarioId},
+    );
+    return int.tryParse(res.rows.first.colAt(0) ?? '0') ?? 0;
+  }
+
+  /// Gera uma notificação automática a partir de um evento de tarefa.
+  Future<Map<String, dynamic>?> gerarParaTarefa({
+    required String tipo,
+    required int? usuarioId,
+    required String tituloTarefa,
+    String? novoStatus,
+    String? autor,
+  }) async {
+    try {
+      late final String titulo;
+      late final String mensagem;
+
+      switch (tipo) {
+        case 'tarefa_atribuida':
+          titulo = 'Nova Tarefa Atribuída';
+          mensagem = autor != null && autor.trim().isNotEmpty
+              ? '$autor atribuiu "$tituloTarefa" a você.'
+              : 'A tarefa "$tituloTarefa" foi atribuída a você.';
+          break;
+        case 'status_alterado':
+          titulo = 'Status Alterado';
+          mensagem = novoStatus != null && novoStatus.trim().isNotEmpty
+              ? 'A tarefa "$tituloTarefa" mudou para $novoStatus.'
+              : 'O status da tarefa "$tituloTarefa" foi alterado.';
+          break;
+        default:
+          return null;
+      }
+
+      return await criar({
+        'usuario_id': usuarioId,
+        'titulo': titulo,
+        'mensagem': mensagem,
+        'tipo': tipo,
+      });
+    } catch (_) {
+      return null;
+    }
+  }
 }
