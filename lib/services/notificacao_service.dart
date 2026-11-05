@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import '../models/user_profile.dart';
 import 'api_service.dart';
 
@@ -59,5 +61,43 @@ class NotificacaoService {
       }
     } catch (_) {}
     return null;
+  }
+
+  /// Marca uma notificação como lida
+  static Future<bool> marcarComoLida(int id) async {
+    try {
+      final response = await http
+          .put(
+            Uri.parse('${ApiService.baseUrl}/api/notificacoes/$id/lida'),
+            headers: {
+              'Content-Type': 'application/json',
+              if (UserSession.currentOrNull?.id != null)
+                'x-user-id': UserSession.current.id.toString(),
+            },
+          )
+          .timeout(const Duration(seconds: 4));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Marca todas as notificações como lidas
+  static Future<bool> marcarTodasComoLidas() async {
+    try {
+      final response = await http
+          .put(
+            Uri.parse('${ApiService.baseUrl}/api/notificacoes/lidas'),
+            headers: {
+              'Content-Type': 'application/json',
+              if (UserSession.currentOrNull?.id != null)
+                'x-user-id': UserSession.current.id.toString(),
+            },
+          )
+          .timeout(const Duration(seconds: 4));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
   }
 }

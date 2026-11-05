@@ -7,6 +7,7 @@ class NotificacaoModel {
   final String mensagem;
   final bool lida;
   final String? dataEnvio;
+  final String tipo;
 
   NotificacaoModel({
     this.id,
@@ -15,6 +16,7 @@ class NotificacaoModel {
     required this.mensagem,
     this.lida = false,
     this.dataEnvio,
+    this.tipo = 'geral',
   });
 
   factory NotificacaoModel.fromRow(ResultSetRow row) {
@@ -25,6 +27,7 @@ class NotificacaoModel {
       mensagem: row.colAt(3) ?? '',
       lida: (row.colAt(4) ?? '0') == '1',
       dataEnvio: row.colAt(5),
+      tipo: row.colAt(6) ?? 'geral',
     );
   }
 
@@ -44,6 +47,7 @@ class NotificacaoModel {
       mensagem: json['mensagem'].toString().trim(),
       lida: json['lida'] == true || json['lida'] == 1,
       dataEnvio: json['data_envio']?.toString().trim(),
+      tipo: (json['tipo'] ?? 'geral').toString().trim(),
     );
   }
 
@@ -55,6 +59,7 @@ class NotificacaoModel {
       'mensagem': mensagem,
       'lida': lida,
       'data_envio': dataEnvio,
+      'tipo': tipo,
     };
   }
 }
