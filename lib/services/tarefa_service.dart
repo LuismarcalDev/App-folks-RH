@@ -46,7 +46,9 @@ class TarefaService {
               if (UserSession.currentOrNull?.id != null)
                 'x-user-id': UserSession.current.id.toString(),
             },
-            body: jsonEncode(newTask.toJson(userId: UserSession.currentOrNull?.id)),
+            body: jsonEncode(
+              newTask.toJson(userId: newTask.userId ?? UserSession.currentOrNull?.id),
+            ),
           )
           .timeout(const Duration(seconds: 5));
 
@@ -56,6 +58,9 @@ class TarefaService {
         TaskSession.tasks.removeWhere((t) => t.id == created.id);
         TaskSession.tasks.insert(0, created);
         return created;
+      }
+      if (response.statusCode == 403 || response.statusCode == 400) {
+        return null;
       }
     } catch (_) {}
 
@@ -73,7 +78,11 @@ class TarefaService {
               if (UserSession.currentOrNull?.id != null)
                 'x-user-id': UserSession.current.id.toString(),
             },
-            body: jsonEncode(updatedTask.toJson(userId: UserSession.currentOrNull?.id)),
+            body: jsonEncode(
+              updatedTask.toJson(
+                userId: updatedTask.userId ?? UserSession.currentOrNull?.id,
+              ),
+            ),
           )
           .timeout(const Duration(seconds: 5));
 
@@ -135,6 +144,9 @@ class TarefaService {
       if (response.statusCode == 200) {
         TaskSession.tasks.removeWhere((t) => t.id == task.id);
         return true;
+      }
+      if (response.statusCode == 403 || response.statusCode == 400) {
+        return false;
       }
     } catch (_) {}
 

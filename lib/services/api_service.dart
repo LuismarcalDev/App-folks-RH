@@ -121,10 +121,21 @@ class ApiService {
     required String titulo,
     required String mensagem,
     int? usuarioId,
+    String tipo = 'geral',
   }) =>
       NotificacaoService.enviarNotificacao(
         titulo: titulo,
         mensagem: mensagem,
         usuarioId: usuarioId,
+        tipo: tipo,
       );
+
+  static Future<bool> marcarNotificacaoComoLida(int id) =>
+      NotificacaoService.marcarComoLida(id);
+
+  static Future<bool> marcarTodasNotificacoesComoLidas() =>
+      NotificacaoService.marcarTodasComoLidas();
+
+  static Future<int> contarNotificacoesNaoLidas() =>
+      NotificacaoService.contarNaoLidas();
 }

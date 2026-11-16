@@ -46,37 +46,58 @@ class NotificacaoController {
   }
   
   int? _userId(Request request) =>
-    int.tryParse(request.headers['x-user-id'] ?? '');
+      int.tryParse(request.headers['x-user-id'] ?? '');
 
-Future<Response> marcarLida(Request request, String id) async {
-  try {
-    final notifId = int.tryParse(id);
-    if (notifId == null) return ApiResponse.badRequest('Id inválido.');
-    final ok = await _notificacaoService.marcarComoLida(
-        notifId, _userId(request));
-    if (!ok) return ApiResponse.badRequest('Notificação não encontrada.');
-    return ApiResponse.ok({'mensagem': 'Notificação marcada como lida.'});
-  } catch (e) {
-    return ApiResponse.serverError('Erro ao marcar notificação: $e');
+  Future<Response?> _checkPermission(int? userId) async {
+    if (userId == null) return null;
+    final user = await _usuarioService.buscarPorId(userId);
+    if (user != null && !user.permissoes.notificacoes) {
+      return ApiResponse.forbidden(
+        'Acesso negado: você não tem permissão para acessar o módulo de Notificações.',
+      );
+    }
+    return null;
   }
-}
 
-Future<Response> marcarTodasLidas(Request request) async {
-  try {
-    final total =
-        await _notificacaoService.marcarTodasComoLidas(_userId(request));
-    return ApiResponse.ok({'atualizadas': total});
-  } catch (e) {
-    return ApiResponse.serverError('Erro ao marcar notificações: $e');
-  }
-}
+  Future<Response> marcarLida(Request request, String id) async {
+    try {
+      final userId = _userId(request);
+      final denied = await _checkPermission(userId);
+      if (denied != null) return denied;
 
-Future<Response> naoLidas(Request request) async {
-  try {
-    final total = await _notificacaoService.contarNaoLidas(_userId(request));
-    return ApiResponse.ok({'nao_lidas': total});
-  } catch (e) {
-    return ApiResponse.serverError('Erro ao contar notificações: $e');
+      final notifId = int.tryParse(id);
+      if (notifId == null) return ApiResponse.badRequest('Id inválido.');
+      final ok = await _notificacaoService.marcarComoLida(notifId, userId);
+      if (!ok) return ApiResponse.badRequest('Notificação não encontrada.');
+      return ApiResponse.ok({'mensagem': 'Notificação marcada como lida.'});
+    } catch (e) {
+      return ApiResponse.serverError('Erro ao marcar notificação: $e');
+    }
   }
-}
+
+  Future<Response> marcarTodasLidas(Request request) async {
+    try {
+      final userId = _userId(request);
+      final denied = await _checkPermission(userId);
+      if (denied != null) return denied;
+
+      final total = await _notificacaoService.marcarTodasComoLidas(userId);
+      return ApiResponse.ok({'atualizadas': total});
+    } catch (e) {
+      return ApiResponse.serverError('Erro ao marcar notificações: $e');
+    }
+  }
+
+  Future<Response> naoLidas(Request request) async {
+    try {
+      final userId = _userId(request);
+      final denied = await _checkPermission(userId);
+      if (denied != null) return denied;
+
+      final total = await _notificacaoService.contarNaoLidas(userId);
+      return ApiResponse.ok({'nao_lidas': total});
+    } catch (e) {
+      return ApiResponse.serverError('Erro ao contar notificações: $e');
+    }
+  }
 }

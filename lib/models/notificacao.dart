@@ -41,6 +41,7 @@ class Notificacao {
       'mensagem': mensagem,
       'lida': lida,
       'data_envio': dataEnvio,
+      'tipo': tipo,
     };
   }
 

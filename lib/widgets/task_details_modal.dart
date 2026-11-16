@@ -60,11 +60,13 @@ class _TaskDetailsModalState extends State<TaskDetailsModal> {
 
   Future<void> _handleStatusChange(TaskStatus newStatus) async {
     if (widget.onStatusSelected == null) return;
-    final updated = await TarefaService.alterarStatusTarefa(_currentTask, newStatus);
-    widget.onStatusSelected?.call(newStatus);
+    final result = widget.onStatusSelected!(newStatus);
+    if (result is Future) {
+      await result;
+    }
     if (!mounted) return;
     setState(() {
-      _currentTask = updated;
+      _currentTask = _currentTask.copyWith(status: newStatus);
       _carregarLogs();
     });
   }

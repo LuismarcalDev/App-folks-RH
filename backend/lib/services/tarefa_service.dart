@@ -1,7 +1,40 @@
 import '../config/database.dart';
 import '../models/tarefa_model.dart';
+import 'notificacao_service.dart';
 
 class TarefaService {
+  final NotificacaoService _notificacaoService = NotificacaoService();
+
+  static String _statusLabel(String status) {
+    switch (status.toLowerCase().trim()) {
+      case 'em_andamento':
+        return 'Em Andamento';
+      case 'pendente':
+        return 'Pendente';
+      case 'concluida':
+      case 'concluido':
+        return 'Concluída';
+      case 'cancelada':
+        return 'Cancelada';
+      default:
+        return status;
+    }
+  }
+
+  Future<Map<String, dynamic>?> _buscarResumo(int id) async {
+    final conn = await Database.getConnection();
+    final res = await conn.execute(
+      'SELECT Titulo, Status, Usuarios_Id FROM tarefas WHERE Id = :id LIMIT 1;',
+      {'id': id},
+    );
+    if (res.rows.isEmpty) return null;
+    final row = res.rows.first;
+    return {
+      'titulo': row.colByName('Titulo') ?? 'Tarefa #$id',
+      'status': row.colByName('Status') ?? 'em_andamento',
+      'usuarioId': int.tryParse(row.colByName('Usuarios_Id') ?? ''),
+    };
+  }
   Future<List<Map<String, dynamic>>> listarTodas() async {
     final conn = await Database.getConnection();
     const sql = '''
@@ -17,7 +50,10 @@ class TarefaService {
     return res.rows.map((r) => TarefaModel.fromRow(r).toJson()).toList();
   }
 
-  Future<Map<String, dynamic>> criar(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> criar(
+    Map<String, dynamic> data, {
+    String? autorNome,
+  }) async {
     final conn = await Database.getConnection();
     final titulo = (data['title'] ?? '').toString().trim();
     final descricao = (data['description'] ?? 'Sem descrição cadastrada.').toString().trim();
@@ -50,8 +86,19 @@ class TarefaService {
     });
 
     final newId = res.lastInsertID.toInt();
+    final autor = (autorNome != null && autorNome.trim().isNotEmpty)
+        ? autorNome.trim()
+        : gestorNome;
     if (newId > 0) {
-      await _registrarLog(newId, 'criada', 'Tarefa criada por $gestorNome');
+      await _registrarLog(newId, 'criada', 'Tarefa criada por $autor');
+      if (usuarioId != null) {
+        await _notificacaoService.gerarParaTarefa(
+          tipo: 'tarefa_atribuida',
+          usuarioId: usuarioId,
+          tituloTarefa: titulo,
+          autor: autor,
+        );
+      }
     }
 
     return TarefaModel(
@@ -71,8 +118,13 @@ class TarefaService {
     ).toJson();
   }
 
-  Future<Map<String, dynamic>> atualizar(int id, Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> atualizar(
+    int id,
+    Map<String, dynamic> data, {
+    String? autorNome,
+  }) async {
     final conn = await Database.getConnection();
+    final anterior = await _buscarResumo(id);
     final titulo = (data['title'] ?? '').toString().trim();
     final descricao = (data['description'] ?? 'Sem descrição cadastrada.').toString().trim();
     final status = (data['status'] ?? 'em_andamento').toString().trim();
@@ -112,11 +164,37 @@ class TarefaService {
       'cid': clienteId,
     });
 
+    final autor = (autorNome != null && autorNome.trim().isNotEmpty)
+        ? autorNome.trim()
+        : gestorNome;
+
     await _registrarLog(
       id,
       status == 'concluida' ? 'concluida' : 'atualizada',
-      'Tarefa editada',
+      autorNome != null ? 'Tarefa editada por $autor' : 'Tarefa editada',
     );
+
+    final previousUserId = anterior?['usuarioId'] as int?;
+    final previousStatus = anterior?['status'] as String?;
+
+    if (usuarioId != null && usuarioId != previousUserId) {
+      await _notificacaoService.gerarParaTarefa(
+        tipo: 'tarefa_atribuida',
+        usuarioId: usuarioId,
+        tituloTarefa: titulo,
+        autor: autor,
+      );
+    }
+
+    final targetUserId = usuarioId ?? previousUserId;
+    if (previousStatus != null && status != previousStatus && targetUserId != null) {
+      await _notificacaoService.gerarParaTarefa(
+        tipo: 'status_alterado',
+        usuarioId: targetUserId,
+        tituloTarefa: titulo,
+        novoStatus: _statusLabel(status),
+      );
+    }
 
     return TarefaModel(
       id: id.toString(),
@@ -135,17 +213,46 @@ class TarefaService {
     ).toJson();
   }
 
-  Future<bool> atualizarStatus(int id, String status) async {
+  Future<bool> atualizarStatus(
+    int id,
+    String status, {
+    String? autorNome,
+  }) async {
     final conn = await Database.getConnection();
+    final anterior = await _buscarResumo(id);
+
     await conn.execute(
       'UPDATE tarefas SET Status = :status WHERE Id = :id;',
       {'id': id, 'status': status},
     );
+
+    final statusLabel = _statusLabel(status);
+    final acao = status == 'concluida'
+        ? 'concluida'
+        : status == 'cancelada'
+            ? 'cancelada'
+            : 'atualizada';
     await _registrarLog(
       id,
-      status == 'concluida' ? 'concluida' : 'atualizada',
-      'Status alterado para $status',
+      acao,
+      autorNome != null
+          ? 'Status alterado para $statusLabel por $autorNome'
+          : 'Status alterado para $statusLabel',
     );
+
+    final previousUserId = anterior?['usuarioId'] as int?;
+    final previousStatus = anterior?['status'] as String?;
+    final tituloTarefa = (anterior?['titulo'] as String?) ?? 'Tarefa #$id';
+
+    if (previousStatus != status && previousUserId != null) {
+      await _notificacaoService.gerarParaTarefa(
+        tipo: 'status_alterado',
+        usuarioId: previousUserId,
+        tituloTarefa: tituloTarefa,
+        novoStatus: statusLabel,
+      );
+    }
+
     return true;
   }
 

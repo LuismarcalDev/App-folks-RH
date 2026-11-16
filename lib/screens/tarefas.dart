@@ -11,6 +11,7 @@ import '../widgets/task_details_modal.dart';
 /// Tela de Tarefas — Totalmente conectada com a API e banco MySQL
 class TarefasScreen extends StatefulWidget {
   final List<Task>? tasks;
+  final Function(List<Task> tasks)? onTasksLoaded;
   final Function(Task newTask)? onTaskCreated;
   final Function(Task task, TaskStatus newStatus)? onStatusUpdated;
   final Function(Task updatedTask)? onTaskEdited;
@@ -19,6 +20,7 @@ class TarefasScreen extends StatefulWidget {
   const TarefasScreen({
     super.key,
     this.tasks,
+    this.onTasksLoaded,
     this.onTaskCreated,
     this.onStatusUpdated,
     this.onTaskEdited,
@@ -74,6 +76,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
       _localTasks = List<Task>.from(loaded);
       _isLoading = false;
     });
+    widget.onTasksLoaded?.call(loaded);
   }
 
   List<Task> get _filteredTasks {

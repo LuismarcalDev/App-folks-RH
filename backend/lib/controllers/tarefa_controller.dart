@@ -7,18 +7,18 @@ class TarefaController {
   final TarefaService _tarefaService = TarefaService();
   final UsuarioService _usuarioService = UsuarioService();
 
+  int? _actorId(Request request) =>
+      int.tryParse(request.headers['x-user-id'] ?? '');
+
   Future<Response> listar(Request request) async {
     try {
-      final userIdHeader = request.headers['x-user-id'];
-      if (userIdHeader != null) {
-        final userId = int.tryParse(userIdHeader);
-        if (userId != null) {
-          final user = await _usuarioService.buscarPorId(userId);
-          if (user != null && !user.permissoes.tarefas) {
-            return ApiResponse.forbidden(
-              'Acesso negado: você não tem permissão para acessar o módulo de Tarefas.',
-            );
-          }
+      final userId = _actorId(request);
+      if (userId != null) {
+        final user = await _usuarioService.buscarPorId(userId);
+        if (user != null && !user.permissoes.tarefas) {
+          return ApiResponse.forbidden(
+            'Acesso negado: você não tem permissão para acessar o módulo de Tarefas.',
+          );
         }
       }
 
@@ -32,20 +32,25 @@ class TarefaController {
   Future<Response> criar(Request request) async {
     try {
       final data = await ApiResponse.readJsonBody(request);
-      final userId = data['userId'] is int
-          ? data['userId'] as int
-          : int.tryParse(data['userId']?.toString() ?? request.headers['x-user-id'] ?? '');
+      final actorId = _actorId(request) ??
+          (data['userId'] is int
+              ? data['userId'] as int
+              : int.tryParse(data['userId']?.toString() ?? ''));
 
-      if (userId != null) {
-        final user = await _usuarioService.buscarPorId(userId);
-        if (user != null && !user.permissoes.criarTarefas) {
-          return ApiResponse.forbidden(
-            'Acesso negado: apenas pessoas com permissão podem criar tarefas.',
-          );
+      String? autorNome;
+      if (actorId != null) {
+        final user = await _usuarioService.buscarPorId(actorId);
+        if (user != null) {
+          if (!user.permissoes.criarTarefas) {
+            return ApiResponse.forbidden(
+              'Acesso negado: apenas pessoas com permissão podem criar tarefas.',
+            );
+          }
+          autorNome = user.nome;
         }
       }
 
-      final nova = await _tarefaService.criar(data);
+      final nova = await _tarefaService.criar(data, autorNome: autorNome);
       return ApiResponse.created({
         'mensagem': 'Tarefa criada com sucesso!',
         'tarefa': nova,
@@ -57,8 +62,31 @@ class TarefaController {
 
   Future<Response> atualizar(Request request, String id) async {
     try {
+      final tarefaId = int.tryParse(id);
+      if (tarefaId == null) {
+        return ApiResponse.badRequest('ID de tarefa inválido.');
+      }
+
+      final actorId = _actorId(request);
+      String? autorNome;
+      if (actorId != null) {
+        final user = await _usuarioService.buscarPorId(actorId);
+        if (user != null) {
+          if (!user.permissoes.editarTarefas) {
+            return ApiResponse.forbidden(
+              'Acesso negado: você não tem permissão para editar tarefas.',
+            );
+          }
+          autorNome = user.nome;
+        }
+      }
+
       final data = await ApiResponse.readJsonBody(request);
-      final atualizada = await _tarefaService.atualizar(int.parse(id), data);
+      final atualizada = await _tarefaService.atualizar(
+        tarefaId,
+        data,
+        autorNome: autorNome,
+      );
       return ApiResponse.ok({
         'mensagem': 'Tarefa editada com sucesso!',
         'tarefa': atualizada,
@@ -70,9 +98,32 @@ class TarefaController {
 
   Future<Response> atualizarStatus(Request request, String id) async {
     try {
+      final tarefaId = int.tryParse(id);
+      if (tarefaId == null) {
+        return ApiResponse.badRequest('ID de tarefa inválido.');
+      }
+
+      final actorId = _actorId(request);
+      String? autorNome;
+      if (actorId != null) {
+        final user = await _usuarioService.buscarPorId(actorId);
+        if (user != null) {
+          if (!user.permissoes.alterarStatus) {
+            return ApiResponse.forbidden(
+              'Acesso negado: você não tem permissão para alterar status.',
+            );
+          }
+          autorNome = user.nome;
+        }
+      }
+
       final data = await ApiResponse.readJsonBody(request);
       final status = (data['status'] ?? 'em_andamento').toString();
-      await _tarefaService.atualizarStatus(int.parse(id), status);
+      await _tarefaService.atualizarStatus(
+        tarefaId,
+        status,
+        autorNome: autorNome,
+      );
       return ApiResponse.ok({'mensagem': 'Status da tarefa alterado com sucesso!'});
     } catch (e) {
       return ApiResponse.serverError('Erro ao alterar status: $e');
@@ -81,7 +132,22 @@ class TarefaController {
 
   Future<Response> excluir(Request request, String id) async {
     try {
-      await _tarefaService.excluir(int.parse(id));
+      final tarefaId = int.tryParse(id);
+      if (tarefaId == null) {
+        return ApiResponse.badRequest('ID de tarefa inválido.');
+      }
+
+      final actorId = _actorId(request);
+      if (actorId != null) {
+        final user = await _usuarioService.buscarPorId(actorId);
+        if (user != null && !user.permissoes.excluirTarefas) {
+          return ApiResponse.forbidden(
+            'Acesso negado: você não tem permissão para excluir tarefas.',
+          );
+        }
+      }
+
+      await _tarefaService.excluir(tarefaId);
       return ApiResponse.ok({'mensagem': 'Tarefa excluída com sucesso!'});
     } catch (e) {
       return ApiResponse.serverError('Erro ao excluir tarefa: $e');

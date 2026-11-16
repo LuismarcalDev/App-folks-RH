@@ -9,7 +9,14 @@ import '../widgets/controle_acesso.dart';
 /// Backend: GET /api/notificacoes, PUT /api/notificacoes/:id/lida,
 /// PUT /api/notificacoes/lidas
 class NotificacaoScreen extends StatefulWidget {
-  const NotificacaoScreen({super.key});
+  final int refreshTrigger;
+  final ValueChanged<int>? onUnreadCountChanged;
+
+  const NotificacaoScreen({
+    super.key,
+    this.refreshTrigger = 0,
+    this.onUnreadCountChanged,
+  });
 
   @override
   State<NotificacaoScreen> createState() => _NotificacaoScreenState();
@@ -25,14 +32,30 @@ class _NotificacaoScreenState extends State<NotificacaoScreen> {
     _carregarNotificacoes();
   }
 
-  Future<void> _carregarNotificacoes() async {
-    setState(() => _isLoading = true);
+  @override
+  void didUpdateWidget(covariant NotificacaoScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.refreshTrigger != oldWidget.refreshTrigger) {
+      _carregarNotificacoes(silencioso: true);
+    }
+  }
+
+  void _emitirContagemNaoLidas() {
+    final total = _notificacoes.where((n) => !n.lida).length;
+    widget.onUnreadCountChanged?.call(total);
+  }
+
+  Future<void> _carregarNotificacoes({bool silencioso = false}) async {
+    if (!silencioso) {
+      setState(() => _isLoading = true);
+    }
     final lista = await NotificacaoService.listarNotificacoes();
     if (!mounted) return;
     setState(() {
       _notificacoes = lista;
       _isLoading = false;
     });
+    _emitirContagemNaoLidas();
   }
 
   Future<void> _marcarComoLida(int index) async {
@@ -41,6 +64,7 @@ class _NotificacaoScreenState extends State<NotificacaoScreen> {
     final ok = await NotificacaoService.marcarComoLida(n.id!);
     if (!ok || !mounted) return;
     setState(() => _notificacoes[index] = n.copiarComoLida());
+    _emitirContagemNaoLidas();
   }
 
   Future<void> _marcarTodasComoLidas() async {
@@ -49,6 +73,7 @@ class _NotificacaoScreenState extends State<NotificacaoScreen> {
     setState(() {
       _notificacoes = _notificacoes.map((n) => n.copiarComoLida()).toList();
     });
+    _emitirContagemNaoLidas();
   }
 
   IconData _iconePorTipo(String tipo) {

@@ -62,7 +62,7 @@ DROP TABLE IF EXISTS `usuarios`;
 CREATE TABLE `usuarios` (
   `Id` int NOT NULL AUTO_INCREMENT,
   `Nome` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `Tipo` enum('gestor','analista','assistente','auxiliar') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Tipo` enum('admin','gestor','analista','assistente','auxiliar') COLLATE utf8mb4_unicode_ci NOT NULL,
   `Funcao_Nome` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `Setor_Id` int DEFAULT NULL,
   `E_mail` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -199,6 +199,7 @@ CREATE TABLE `notificacoes` (
   `Mensagem` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `Lida` tinyint(1) NOT NULL DEFAULT '0',
   `Data_Envio` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Tipo` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'geral',
   PRIMARY KEY (`Id`),
   KEY `fk_notificacoes_usuario` (`Usuario_Id`),
   CONSTRAINT `fk_notificacoes_usuario` FOREIGN KEY (`Usuario_Id`) REFERENCES `usuarios` (`Id`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -251,13 +252,3 @@ INSERT INTO `log_tarefa` (`Tarefas_Id`, `Acao`, `Descricao`) VALUES
 
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET SQL_MODE=@OLD_SQL_MODE;
-
-CREATE TABLE IF NOT EXISTS notificacoes (
-  Id INT AUTO_INCREMENT PRIMARY KEY,
-  Usuario_Id INT NULL,
-  Titulo VARCHAR(150) NOT NULL,
-  Mensagem TEXT NOT NULL,
-  Lida TINYINT(1) NOT NULL DEFAULT 0,
-  Data_Envio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  Tipo VARCHAR(30) NOT NULL DEFAULT 'geral'
-);

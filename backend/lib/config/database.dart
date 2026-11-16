@@ -79,9 +79,14 @@ class Database {
           Mensagem TEXT NOT NULL,
           Lida TINYINT(1) NOT NULL DEFAULT 0,
           Data_Envio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          Tipo VARCHAR(30) NOT NULL DEFAULT 'geral',
           CONSTRAINT fk_notificacoes_usuario FOREIGN KEY (Usuario_Id) REFERENCES usuarios (Id) ON DELETE CASCADE ON UPDATE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       ''');
+
+      try {
+        await conn.execute("ALTER TABLE notificacoes ADD COLUMN Tipo VARCHAR(30) NOT NULL DEFAULT 'geral';");
+      } catch (_) {}
     } catch (_) {}
   }
 

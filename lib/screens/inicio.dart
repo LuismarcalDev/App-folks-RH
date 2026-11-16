@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../routes/app_routes.dart';
+import '../services/notificacao_service.dart';
 import '../services/tarefa_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/custom_badges.dart';
@@ -21,6 +22,8 @@ class InicioScreen extends StatefulWidget {
 class _InicioScreenState extends State<InicioScreen> {
   late int _currentIndex;
   List<Task> _tasks = [];
+  int _unreadNotifications = 0;
+  int _notifRefreshTrigger = 0;
 
   @override
   void initState() {
@@ -28,6 +31,7 @@ class _InicioScreenState extends State<InicioScreen> {
     _currentIndex = widget.initialIndex;
     _tasks = List.from(TaskSession.tasks);
     _carregarTarefas();
+    _atualizarContadorNotificacoes();
   }
 
   Future<void> _carregarTarefas() async {
@@ -36,6 +40,33 @@ class _InicioScreenState extends State<InicioScreen> {
     setState(() {
       _tasks = List.from(loaded);
     });
+  }
+
+  Future<void> _atualizarContadorNotificacoes() async {
+    final total = await NotificacaoService.contarNaoLidas();
+    if (!mounted) return;
+    setState(() {
+      _unreadNotifications = total;
+    });
+  }
+
+  void _selecionarAba(int index) {
+    setState(() {
+      _currentIndex = index;
+      if (index == 3) {
+        _notifRefreshTrigger++;
+      }
+    });
+    if (index == 3) {
+      _atualizarContadorNotificacoes();
+    }
+  }
+
+  void _notificarAlteracaoTarefa() {
+    setState(() {
+      _notifRefreshTrigger++;
+    });
+    _atualizarContadorNotificacoes();
   }
 
   void _abrirFuncionarios() {
@@ -61,11 +92,17 @@ class _InicioScreenState extends State<InicioScreen> {
       _buildDashboardTab(user, perms),
       TarefasScreen(
         tasks: _tasks,
+        onTasksLoaded: (loaded) {
+          setState(() {
+            _tasks = List.from(loaded);
+          });
+        },
         onTaskCreated: (newTask) {
           setState(() {
             _tasks.removeWhere((t) => t.id == newTask.id);
             _tasks.insert(0, newTask);
           });
+          _notificarAlteracaoTarefa();
         },
         onStatusUpdated: (task, newStatus) {
           setState(() {
@@ -74,6 +111,7 @@ class _InicioScreenState extends State<InicioScreen> {
               _tasks[idx] = _tasks[idx].copyWith(status: newStatus);
             }
           });
+          _notificarAlteracaoTarefa();
         },
         onTaskEdited: (updatedTask) {
           setState(() {
@@ -82,6 +120,7 @@ class _InicioScreenState extends State<InicioScreen> {
               _tasks[idx] = updatedTask;
             }
           });
+          _notificarAlteracaoTarefa();
         },
         onTaskDeleted: (task) {
           setState(() {
@@ -90,7 +129,14 @@ class _InicioScreenState extends State<InicioScreen> {
         },
       ),
       const ClientesScreen(),
-      const NotificacaoScreen(),
+      NotificacaoScreen(
+        refreshTrigger: _notifRefreshTrigger,
+        onUnreadCountChanged: (count) {
+          if (_unreadNotifications != count && mounted) {
+            setState(() => _unreadNotifications = count);
+          }
+        },
+      ),
     ];
 
     return Scaffold(
@@ -127,7 +173,12 @@ class _InicioScreenState extends State<InicioScreen> {
                   _buildNavItem(0, Icons.home_outlined, 'Início'),
                   _buildNavItem(1, Icons.assignment_outlined, 'Tarefas'),
                   _buildNavItem(2, Icons.people_outline, 'Clientes'),
-                  _buildNavItem(3, Icons.notifications_none_outlined, 'Notificações'),
+                  _buildNavItem(
+                    3,
+                    Icons.notifications_none_outlined,
+                    'Notificações',
+                    badgeCount: _unreadNotifications,
+                  ),
                 ],
               ),
             ),
@@ -269,9 +320,9 @@ class _InicioScreenState extends State<InicioScreen> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _buildModuleBadge('Clientes', perms.clientes, () => setState(() => _currentIndex = 2)),
-                    _buildModuleBadge('Tarefas', perms.tarefas, () => setState(() => _currentIndex = 1)),
-                    _buildModuleBadge('Notificações', perms.notificacoes, () => setState(() => _currentIndex = 3)),
+                    _buildModuleBadge('Clientes', perms.clientes, () => _selecionarAba(2)),
+                    _buildModuleBadge('Tarefas', perms.tarefas, () => _selecionarAba(1)),
+                    _buildModuleBadge('Notificações', perms.notificacoes, () => _selecionarAba(3)),
                     if (perms.funcionarios)
                       _buildModuleBadge('Funcionários', true, _abrirFuncionarios),
                   ],
@@ -300,7 +351,7 @@ class _InicioScreenState extends State<InicioScreen> {
                 child: _buildQuickAction(
                   title: 'Tarefas',
                   icon: Icons.assignment_outlined,
-                  onTap: () => setState(() => _currentIndex = 1),
+                  onTap: () => _selecionarAba(1),
                 ),
               ),
               const SizedBox(width: 10),
@@ -308,7 +359,7 @@ class _InicioScreenState extends State<InicioScreen> {
                 child: _buildQuickAction(
                   title: 'Clientes',
                   icon: Icons.people_outline,
-                  onTap: () => setState(() => _currentIndex = 2),
+                  onTap: () => _selecionarAba(2),
                 ),
               ),
               const SizedBox(width: 10),
@@ -316,7 +367,8 @@ class _InicioScreenState extends State<InicioScreen> {
                 child: _buildQuickAction(
                   title: 'Notificações',
                   icon: Icons.notifications_none,
-                  onTap: () => setState(() => _currentIndex = 3),
+                  badgeCount: _unreadNotifications,
+                  onTap: () => _selecionarAba(3),
                 ),
               ),
             ],
@@ -330,6 +382,7 @@ class _InicioScreenState extends State<InicioScreen> {
     required String title,
     required IconData icon,
     required VoidCallback onTap,
+    int badgeCount = 0,
   }) {
     return InkWell(
       onTap: onTap,
@@ -343,7 +396,7 @@ class _InicioScreenState extends State<InicioScreen> {
         ),
         child: Column(
           children: [
-            Icon(icon, color: Colors.white, size: 24),
+            _buildIconWithBadge(icon, Colors.white, 24, badgeCount),
             const SizedBox(height: 6),
             Text(
               title,
@@ -392,23 +445,64 @@ class _InicioScreenState extends State<InicioScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildIconWithBadge(IconData icon, Color color, double size, int badgeCount) {
+    if (badgeCount <= 0) {
+      return Icon(icon, color: color, size: size);
+    }
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(icon, color: color, size: size),
+        Positioned(
+          top: -5,
+          right: -8,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+            decoration: BoxDecoration(
+              color: Colors.redAccent.shade700,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.bgMain, width: 1),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              badgeCount > 99 ? '99+' : badgeCount.toString(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                height: 1.1,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    String label, {
+    int badgeCount = 0,
+  }) {
     final isSelected = _currentIndex == index;
+    final iconColor = isSelected ? Colors.white : Colors.white60;
 
     return InkWell(
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () => _selecionarAba(index),
       borderRadius: BorderRadius.circular(20),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: isSelected ? Colors.white : Colors.white60, size: 22),
+            _buildIconWithBadge(icon, iconColor, 22, badgeCount),
             const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white60,
+                color: iconColor,
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),

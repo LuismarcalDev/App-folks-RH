@@ -20,9 +20,9 @@ void main() async {
 
   try {
     await Database.getConnection();
-    print('✅ Banco de dados MySQL conectado com sucesso!');
+    stdout.writeln('✅ Banco de dados MySQL conectado com sucesso!');
   } catch (e) {
-    print('⚠️ Não foi possível conectar ao MySQL na inicialização: $e');
+    stderr.writeln('⚠️ Não foi possível conectar ao MySQL na inicialização: $e');
   }
 
   final app = Router();
@@ -61,5 +61,7 @@ void main() async {
       .addHandler(app.call);
 
   final server = await serve(handler, InternetAddress.anyIPv4, port);
-  print('🚀 Servidor Folks RH rodando em: http://localhost:${server.port}');
+  stdout.writeln(
+    '🚀 Servidor Folks RH rodando em: http://localhost:${server.port}',
+  );
 }

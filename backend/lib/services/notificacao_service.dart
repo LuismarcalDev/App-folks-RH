@@ -49,31 +49,44 @@ class NotificacaoService {
 
   Future<bool> marcarComoLida(int id, int? usuarioId) async {
     final conn = await Database.getConnection();
-    final res = await conn.execute(
-      'UPDATE notificacoes SET Lida = 1 '
-      'WHERE Id = :id AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
-      {'id': id, 'uid': usuarioId},
-    );
+    final res = usuarioId != null
+        ? await conn.execute(
+            'UPDATE notificacoes SET Lida = 1 '
+            'WHERE Id = :id AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
+            {'id': id, 'uid': usuarioId},
+          )
+        : await conn.execute(
+            'UPDATE notificacoes SET Lida = 1 WHERE Id = :id',
+            {'id': id},
+          );
     return res.affectedRows.toInt() > 0;
   }
 
   Future<int> marcarTodasComoLidas(int? usuarioId) async {
     final conn = await Database.getConnection();
-    final res = await conn.execute(
-      'UPDATE notificacoes SET Lida = 1 '
-      'WHERE Lida = 0 AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
-      {'uid': usuarioId},
-    );
+    final res = usuarioId != null
+        ? await conn.execute(
+            'UPDATE notificacoes SET Lida = 1 '
+            'WHERE Lida = 0 AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
+            {'uid': usuarioId},
+          )
+        : await conn.execute(
+            'UPDATE notificacoes SET Lida = 1 WHERE Lida = 0',
+          );
     return res.affectedRows.toInt();
   }
 
   Future<int> contarNaoLidas(int? usuarioId) async {
     final conn = await Database.getConnection();
-    final res = await conn.execute(
-      'SELECT COUNT(*) FROM notificacoes '
-      'WHERE Lida = 0 AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
-      {'uid': usuarioId},
-    );
+    final res = usuarioId != null
+        ? await conn.execute(
+            'SELECT COUNT(*) FROM notificacoes '
+            'WHERE Lida = 0 AND (Usuario_Id = :uid OR Usuario_Id IS NULL)',
+            {'uid': usuarioId},
+          )
+        : await conn.execute(
+            'SELECT COUNT(*) FROM notificacoes WHERE Lida = 0',
+          );
     return int.tryParse(res.rows.first.colAt(0) ?? '0') ?? 0;
   }
 

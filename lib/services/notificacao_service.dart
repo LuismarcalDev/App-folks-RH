@@ -36,6 +36,7 @@ class NotificacaoService {
     required String titulo,
     required String mensagem,
     int? usuarioId,
+    String tipo = 'geral',
   }) async {
     try {
       final response = await http
@@ -49,6 +50,7 @@ class NotificacaoService {
             body: jsonEncode({
               'titulo': titulo.trim(),
               'mensagem': mensagem.trim(),
+              'tipo': tipo.trim().isEmpty ? 'geral' : tipo.trim(),
               'usuario_id': ?usuarioId,
             }),
           )
@@ -61,6 +63,30 @@ class NotificacaoService {
       }
     } catch (_) {}
     return null;
+  }
+
+  /// Conta notificações não lidas do usuário no backend MySQL
+  static Future<int> contarNaoLidas() async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse('${ApiService.baseUrl}/api/notificacoes/nao-lidas'),
+            headers: {
+              'Content-Type': 'application/json',
+              if (UserSession.currentOrNull?.id != null)
+                'x-user-id': UserSession.current.id.toString(),
+            },
+          )
+          .timeout(const Duration(seconds: 4));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final raw = data['nao_lidas'];
+        if (raw is int) return raw;
+        return int.tryParse(raw?.toString() ?? '0') ?? 0;
+      }
+    } catch (_) {}
+    return 0;
   }
 
   /// Marca uma notificação como lida
