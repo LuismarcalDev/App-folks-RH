@@ -56,4 +56,76 @@ class ClienteController {
       return ApiResponse.serverError('Erro ao cadastrar cliente: $e');
     }
   }
+
+  Future<Response> atualizar(Request request, String id) async {
+    try {
+      final negado = await _validarAcesso(request, 'editar');
+      if (negado != null) return negado;
+
+      final clienteId = int.tryParse(id);
+      if (clienteId == null) {
+        return ApiResponse.badRequest('ID de cliente inválido.');
+      }
+
+      final data = await ApiResponse.readJsonBody(request);
+      final atualizado = await _clienteService.atualizar(clienteId, data);
+
+      if (atualizado == null) {
+        return ApiResponse.notFound('Cliente não encontrado.'); // AJUSTAR se não existir
+      }
+
+      return ApiResponse.ok({
+        'mensagem': 'Cliente atualizado com sucesso!',
+        'cliente': atualizado,
+      });
+    } on ArgumentError catch (e) {
+      return ApiResponse.badRequest(e.message.toString());
+    } catch (e) {
+      return ApiResponse.serverError('Erro ao atualizar cliente: $e');
+    }
+  }
+
+  Future<Response> excluir(Request request, String id) async {
+    try {
+      final negado = await _validarAcesso(request, 'excluir');
+      if (negado != null) return negado;
+
+      final clienteId = int.tryParse(id);
+      if (clienteId == null) {
+        return ApiResponse.badRequest('ID de cliente inválido.');
+      }
+
+      final removido = await _clienteService.excluir(clienteId);
+      if (!removido) {
+        return ApiResponse.notFound('Cliente não encontrado.'); // AJUSTAR se não existir
+      }
+
+      return ApiResponse.ok({'mensagem': 'Cliente excluído com sucesso!'});
+    } on ArgumentError catch (e) {
+      return ApiResponse.badRequest(e.message.toString());
+    } catch (e) {
+      final texto = e.toString().toLowerCase();
+      if (texto.contains('foreign key')) {
+        return ApiResponse.badRequest(
+          'Não é possível excluir: o cliente possui registros vinculados.',
+        );
+      }
+      return ApiResponse.serverError('Erro ao excluir cliente: $e');
+    }
+  }
+
+  Future<Response?> _validarAcesso(Request request, String acao) async {
+    final userId = int.tryParse(request.headers['x-user-id'] ?? '');
+    if (userId == null) {
+      return ApiResponse.forbidden('Acesso negado: usuário não identificado.');
+    }
+
+    final user = await _usuarioService.buscarPorId(userId);
+    if (user == null || !user.permissoes.clientes) {
+      return ApiResponse.forbidden(
+        'Acesso negado: você não tem permissão para $acao clientes.',
+      );
+    }
+    return null;
+  }
 }

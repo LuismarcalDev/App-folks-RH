@@ -17,13 +17,18 @@ class ClienteModel {
     this.dataCriacao,
   });
 
+  static String? _limpar(dynamic v) {
+    final s = v?.toString().trim();
+    return (s == null || s.isEmpty) ? null : s;
+  }
+
   factory ClienteModel.fromRow(ResultSetRow row) {
     return ClienteModel(
       id: int.tryParse(row.colAt(0) ?? ''),
       nome: row.colAt(1) ?? '',
-      cpfCnpj: row.colAt(2),
-      email: row.colAt(3),
-      telefone: row.colAt(5),
+      cpfCnpj: _limpar(row.colAt(2)),
+      email: _limpar(row.colAt(3)),
+      telefone: _limpar(row.colAt(5)),
       dataCriacao: row.colAt(6),
     );
   }
@@ -33,12 +38,14 @@ class ClienteModel {
       throw ArgumentError('O nome do cliente é obrigatório.');
     }
     return ClienteModel(
-      id: json['id'] is int ? json['id'] as int : int.tryParse(json['id']?.toString() ?? ''),
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? ''),
       nome: json['nome'].toString().trim(),
-      cpfCnpj: json['cpf_cnpj']?.toString().trim(),
-      email: json['email']?.toString().trim(),
-      telefone: json['telefone']?.toString().trim(),
-      dataCriacao: json['data_criacao']?.toString().trim(),
+      cpfCnpj: _limpar(json['cpf_cnpj']),
+      email: _limpar(json['email']),
+      telefone: _limpar(json['telefone']),
+      dataCriacao: _limpar(json['data_criacao']),
     );
   }
 
