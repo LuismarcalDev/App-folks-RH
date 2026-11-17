@@ -8,6 +8,8 @@ class ClienteRoutes {
     final router = Router();
     router.get('/', _controller.listar);
     router.post('/', _controller.cadastrar);
+    router.put('/<id>', _controller.atualizar);
+    router.delete('/<id>', _controller.excluir);
     return router;
   }
 }
