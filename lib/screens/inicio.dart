@@ -261,12 +261,12 @@ class _InicioScreenState extends State<InicioScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.primaryNavy,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.45)),
+                        border: Border.all(color: AppColors.borderMedium),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.admin_panel_settings, color: Colors.amberAccent, size: 18),
+                          Icon(Icons.admin_panel_settings, color: Colors.white, size: 18),
                           SizedBox(width: 6),
                           Text(
                             'Funcionários',

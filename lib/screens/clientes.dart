@@ -156,6 +156,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
           backgroundColor: AppColors.bgMain,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
           title: const Text(
             'CLIENTES',
             style: TextStyle(

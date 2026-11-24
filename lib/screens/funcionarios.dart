@@ -161,6 +161,7 @@ class _FuncionariosScreenState extends State<FuncionariosScreen> {
           backgroundColor: AppColors.bgMain,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
           title: const Text(
             'GESTÃO DE FUNCIONÁRIOS',
             style: TextStyle(
@@ -660,7 +661,7 @@ class _FuncionariosScreenState extends State<FuncionariosScreen> {
   }) {
     return SwitchListTile(
       dense: true,
-      secondary: Icon(icon, color: value ? Colors.amberAccent : Colors.white54, size: 20),
+      secondary: Icon(icon, color: value ? Colors.white70 : Colors.white54, size: 20),
       title: Text(
         title,
         style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),

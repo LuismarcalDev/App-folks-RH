@@ -152,9 +152,9 @@ class _CadastroScreenState extends State<CadastroScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F2F2),
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -168,17 +168,37 @@ class _CadastroScreenState extends State<CadastroScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: Form(
-                key: _formKey,
-                child: Column(
+              child: Transform.translate(
+                offset: const Offset(0, -30),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     SizedBox(
-                      height: 85,
-                      child: Image.asset('assets/fotos/logo2.png', fit: BoxFit.contain),
+                      height: 180,
+                      child: Center(
+                        child: Transform.scale(
+                          scale: 0.65,
+                          child: Image.asset(
+                            'assets/fotos/logo.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(
+                      height: 90,
+                      child: Transform.translate(
+                        offset: const Offset(0, -35),
+                        child: Image.asset(
+                          'assets/fotos/logo2.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     Text(
                       'Crie sua conta',
                       textAlign: TextAlign.center,
@@ -369,11 +389,14 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                     ),
                     const SizedBox(height: 22),
-                    FilledButton(
+                    ElevatedButton(
                       onPressed: _isLoading ? null : _handleCadastro,
-                      style: FilledButton.styleFrom(
+                      style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: const Color(0xFF1B2A6B),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: _isLoading
                           ? const SizedBox(
@@ -384,7 +407,10 @@ class _CadastroScreenState extends State<CadastroScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text('Criar conta'),
+                          : const Text(
+                              'Criar conta',
+                              style: TextStyle(color: Colors.white),
+                            ),
                     ),
                     const SizedBox(height: 10),
                     TextButton(
@@ -397,6 +423,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       ),
                     ),
                   ],
+                  ),
                 ),
               ),
             ),

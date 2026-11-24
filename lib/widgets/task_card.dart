@@ -262,7 +262,7 @@ class TaskCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      DoubleChevronUp(color: priorityColor, size: 14),
+                      PriorityIndicator(priority: task.priority, size: 14),
                     ],
                   ),
                 ],

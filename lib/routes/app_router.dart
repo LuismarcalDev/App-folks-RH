@@ -25,7 +25,16 @@ class AppRouter {
       case AppRoute.home:
         return _pageRoute(const StarterScreen(), settings);
       case AppRoute.welcome:
-        return _pageRoute(const WelcomeScreen(), settings);
+        return PageRouteBuilder<void>(
+          settings: settings,
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return const WelcomeScreen();
+          },
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return child;
+          },);
       case AppRoute.login:
         return _pageRoute(const LoginScreen(), settings);
       case AppRoute.cadastro:
