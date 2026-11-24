@@ -5,6 +5,7 @@ import '../theme/app_colors.dart';
 import '../widgets/controle_acesso.dart';
 import '../widgets/create_task_modal.dart';
 import '../widgets/edit_task_modal.dart';
+import '../widgets/custom_badges.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_details_modal.dart';
 
@@ -884,6 +885,10 @@ class _TarefasScreenState extends State<TarefasScreen> {
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
+              if (priority != null) ...[
+                const SizedBox(width: 4),
+                PriorityIndicator(priority: priority, size: 12),
+              ],
             ],
           ),
         ),

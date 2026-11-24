@@ -305,7 +305,7 @@ class _TaskDetailsModalState extends State<TaskDetailsModal> {
                                   ),
                                 ),
                                 const SizedBox(width: 4),
-                                DoubleChevronUp(color: _currentTask.priority.color, size: 13),
+                                PriorityIndicator(priority: _currentTask.priority, size: 13),
                               ],
                             ),
                           ),

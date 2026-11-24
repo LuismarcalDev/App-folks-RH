@@ -122,6 +122,7 @@ class _NotificacaoScreenState extends State<NotificacaoScreen> {
           backgroundColor: AppColors.bgMain,
           surfaceTintColor: Colors.transparent,
           elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
           title: const Text(
             'NOTIFICAÇÕES',
             style: TextStyle(

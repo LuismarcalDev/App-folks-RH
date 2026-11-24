@@ -135,10 +135,8 @@ class TaskFormFields extends StatelessWidget {
                             fontSize: 12,
                           ),
                         ),
-                        if (priority == TaskPriority.alta) ...[
-                          const SizedBox(width: 4),
-                          DoubleChevronUp(color: isSelected ? color : Colors.white54, size: 12),
-                        ],
+                        const SizedBox(width: 4),
+                        PriorityIndicator(priority: priority, size: 12),
                       ],
                     ),
                   ),

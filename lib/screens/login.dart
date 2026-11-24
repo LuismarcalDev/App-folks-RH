@@ -69,9 +69,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F2F2),
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -85,17 +85,37 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: Form(
-                key: _formKey,
-                child: Column(
+              child: Transform.translate(
+                offset: const Offset(0, -30),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     SizedBox(
-                      height: 90,
-                      child: Image.asset('assets/fotos/logo2.png', fit: BoxFit.contain),
+                      height: 180,
+                      child: Center(
+                        child: Transform.scale(
+                          scale: 0.65,
+                          child: Image.asset(
+                            'assets/fotos/logo.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 90,
+                      child: Transform.translate(
+                        offset: const Offset(0, -35),
+                        child: Image.asset(
+                          'assets/fotos/logo2.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     Text(
                       'Bem-vindo de volta',
                       textAlign: TextAlign.center,
@@ -144,11 +164,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    FilledButton(
+                    ElevatedButton(
                       onPressed: _isLoading ? null : _handleLogin,
-                      style: FilledButton.styleFrom(
+                      style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: const Color(0xFF1B2A6B),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: _isLoading
                           ? const SizedBox(
@@ -159,7 +182,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text('Entrar'),
+                          : const Text(
+                              'Entrar',
+                              style: TextStyle(color: Colors.white),
+                            ),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
@@ -172,6 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ],
+                  ),
                 ),
               ),
             ),

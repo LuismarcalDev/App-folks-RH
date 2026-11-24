@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/task.dart';
 
 /// Avatar de Perfil Profissional e Simples
 class ProfileAvatar extends StatelessWidget {
@@ -72,6 +73,32 @@ class DoubleChevronUp extends StatelessWidget {
         painter: _DoubleChevronPainter(color: color),
       ),
     );
+  }
+}
+
+class PriorityIndicator extends StatelessWidget {
+  final TaskPriority priority;
+  final double size;
+
+  const PriorityIndicator({
+    super.key,
+    required this.priority,
+    this.size = 14,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    switch (priority) {
+      case TaskPriority.alta:
+        return DoubleChevronUp(color: priority.color, size: size);
+      case TaskPriority.media:
+        return Icon(Icons.drag_handle, color: priority.color, size: size);
+      case TaskPriority.baixa:
+        return RotatedBox(
+          quarterTurns: 2,
+          child: DoubleChevronUp(color: priority.color, size: size),
+        );
+    }
   }
 }
 

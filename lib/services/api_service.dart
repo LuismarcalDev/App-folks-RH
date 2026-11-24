@@ -15,7 +15,7 @@ export 'tarefa_service.dart';
 
 /// Fachada unificada dos serviços da API Folks RH
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:8081';
+  static const String baseUrl = 'http://127.0.0.1:8080';
 
   // --- Autenticação & Usuários ---
   static Future<UserProfile?> login(String login, String senha) =>
@@ -100,18 +100,8 @@ class ApiService {
   static Future<List<Cliente>> listarClientes() =>
       ClienteService.listarClientes();
 
-  static Future<Cliente?> cadastrarCliente({
-    required String nome,
-    String? cpfCnpj,
-    String? email,
-    String? telefone,
-  }) =>
-      ClienteService.cadastrarCliente(
-        nome: nome,
-        cpfCnpj: cpfCnpj,
-        email: email,
-        telefone: telefone,
-      );
+  static Future<Cliente?> cadastrarCliente(Cliente cliente) =>
+    ClienteService.cadastrarCliente(cliente);
 
   // --- Notificações ---
   static Future<List<Notificacao>> listarNotificacoes() =>

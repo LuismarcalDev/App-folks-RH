@@ -274,12 +274,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
               decoration: BoxDecoration(
                 color: AppColors.bgCard,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: _profile.isAdmin
-                      ? Colors.amberAccent.withValues(alpha: 0.35)
-                      : AppColors.borderSubtle,
-                  width: 1.0,
-                ),
+                border: Border.all(color: AppColors.borderSubtle, width: 1.0),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
