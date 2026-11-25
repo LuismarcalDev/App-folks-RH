@@ -18,7 +18,7 @@ class NotificacaoService {
                 'x-user-id': UserSession.current.id.toString(),
             },
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -54,7 +54,7 @@ class NotificacaoService {
               'usuario_id': ?usuarioId,
             }),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -77,7 +77,7 @@ class NotificacaoService {
                 'x-user-id': UserSession.current.id.toString(),
             },
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -101,7 +101,7 @@ class NotificacaoService {
                 'x-user-id': UserSession.current.id.toString(),
             },
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -120,7 +120,7 @@ class NotificacaoService {
                 'x-user-id': UserSession.current.id.toString(),
             },
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 10));
       return response.statusCode == 200;
     } catch (_) {
       return false;

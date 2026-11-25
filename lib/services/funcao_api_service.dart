@@ -8,7 +8,7 @@ class FuncaoApiService {
     try {
       final response = await http
           .get(Uri.parse('${ApiService.baseUrl}/funcoes'))
-          .timeout(const Duration(seconds: 3));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -42,7 +42,7 @@ class FuncaoApiService {
               'permissoes': permissions.toJson(),
             }),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -67,7 +67,7 @@ class FuncaoApiService {
     try {
       await http
           .delete(Uri.parse('${ApiService.baseUrl}/funcoes/$id'))
-          .timeout(const Duration(seconds: 3));
+          .timeout(const Duration(seconds: 10));
     } catch (_) {}
 
     FunctionSession.functions.removeWhere((f) => f.id == id);

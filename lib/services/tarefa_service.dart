@@ -16,7 +16,7 @@ class TarefaService {
                 'x-user-id': UserSession.current.id.toString(),
             },
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -50,7 +50,7 @@ class TarefaService {
               newTask.toJson(userId: newTask.userId ?? UserSession.currentOrNull?.id),
             ),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -84,7 +84,7 @@ class TarefaService {
               ),
             ),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -119,7 +119,7 @@ class TarefaService {
             },
             body: jsonEncode({'status': newStatus.backendKey}),
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
     } catch (_) {}
 
     final idx = TaskSession.tasks.indexWhere((t) => t.id == task.id);
@@ -139,7 +139,7 @@ class TarefaService {
                 'x-user-id': UserSession.current.id.toString(),
             },
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         TaskSession.tasks.removeWhere((t) => t.id == task.id);
@@ -168,7 +168,7 @@ class TarefaService {
                 'x-user-id': UserSession.current.id.toString(),
             },
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
