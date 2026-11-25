@@ -15,8 +15,11 @@ import 'package:backend_folks_rh/routes/tarefa_routes.dart';
 import 'package:backend_folks_rh/utils/api_response.dart';
 
 void main() async {
-  final env = DotEnv(includePlatformEnvironment: true)..load();
-  final port = int.tryParse(env['PORT'] ?? '8081') ?? 8081;
+  final env = DotEnv(includePlatformEnvironment: true);
+  if (File('.env').existsSync()) {
+    env.load();
+  }
+  final port = int.tryParse(env['PORT'] ?? '8080') ?? 8080;
 
   try {
     await Database.getConnection();

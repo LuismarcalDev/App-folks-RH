@@ -15,7 +15,10 @@ export 'tarefa_service.dart';
 
 /// Fachada unificada dos serviços da API Folks RH
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:8080';
+  static const String baseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://127.0.0.1:8080',
+  );
 
   // --- Autenticação & Usuários ---
   static Future<UserProfile?> login(String login, String senha) =>

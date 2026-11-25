@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 import 'package:mysql_client/mysql_client.dart';
 
@@ -10,7 +11,10 @@ class Database {
       return _connection!;
     }
 
-    final env = DotEnv(includePlatformEnvironment: true)..load();
+    final env = DotEnv(includePlatformEnvironment: true);
+    if (File('.env').existsSync()) {
+      env.load();
+    }
     final rawHost = env['DB_HOST'] ?? '127.0.0.1';
     final host = rawHost == 'localhost' ? '127.0.0.1' : rawHost;
     final port = int.tryParse(env['DB_PORT'] ?? '3306') ?? 3306;
